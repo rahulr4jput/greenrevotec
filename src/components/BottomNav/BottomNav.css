@@ -1,0 +1,70 @@
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 10px 15px;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: none;
+    /* Hidden by default on desktop */
+}
+
+.bottom-nav-inner {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.bottom-nav-item.active {
+    color: var(--color-primary-light);
+}
+
+.nav-icon {
+    font-size: 1.25rem;
+}
+
+.nav-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Light Theme Support */
+[data-theme="light"] .bottom-nav {
+    background: rgba(255, 255, 255, 0.85);
+    border-top-color: #e2e8f0;
+}
+
+[data-theme="light"] .bottom-nav-item {
+    color: #64748b;
+}
+
+[data-theme="light"] .bottom-nav-item.active {
+    color: #15803d;
+}
+
+/* Visibility Toggle */
+@media (max-width: 860px) {
+    .bottom-nav {
+        display: block;
+    }
+}

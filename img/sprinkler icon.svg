@@ -1,0 +1,16 @@
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sprinkler Stand -->
+  <rect x="38" y="42" width="4" height="14" fill="white"></rect>
+
+  <!-- Sprinkler Base -->
+  <rect x="30" y="56" width="20" height="8" rx="2" fill="white"></rect>
+
+  <!-- Sprinkler Head -->
+  <circle cx="40" cy="34" r="7" fill="white"></circle>
+
+  <!-- Water Spray Lines -->
+  <path d="M40 16 C34 22, 34 28, 40 30" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+  <path d="M40 16 C46 22, 46 28, 40 30" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+  <path d="M24 26 C30 30, 35 32, 40 32" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+  <path d="M56 26 C50 30, 45 32, 40 32" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+</svg>

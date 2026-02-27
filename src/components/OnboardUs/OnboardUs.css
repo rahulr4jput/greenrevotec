@@ -1,0 +1,182 @@
+.onboard {
+    position: relative;
+    overflow: hidden;
+}
+
+.onboard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(26, 140, 78, 0.1) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+/* Banner */
+.onboard-banner {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.onboard-banner-icon {
+    font-size: 3rem;
+    color: var(--color-primary-light);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    animation: float 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(26, 140, 78, 0.5));
+}
+
+.onboard-banner-title {
+    font-family: var(--font-primary);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    color: var(--color-white);
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.onboard-banner-title span {
+    background: linear-gradient(135deg, var(--color-primary-light), var(--color-lime));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.onboard-banner-subtitle {
+    font-size: 1.1rem;
+    color: rgba(var(--color-text-rgb), 0.6);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+/* Grid */
+.onboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+/* Card */
+.onboard-card {
+    padding: 32px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.onboard-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: var(--transition-spring);
+}
+
+.onboard-card:hover .onboard-icon {
+    transform: scale(1.1) rotate(-5deg);
+}
+
+.onboard-title {
+    font-family: var(--font-primary);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-white);
+    line-height: 1.3;
+}
+
+.onboard-desc {
+    font-size: 0.875rem;
+    color: rgba(var(--color-text-rgb), 0.5);
+    line-height: 1.7;
+    flex: 1;
+}
+
+.onboard-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.onboard-benefits li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-family: var(--font-secondary);
+    font-weight: 500;
+}
+
+.benefit-text {
+    color: rgba(var(--color-text-rgb), 0.7);
+}
+
+.onboard-cta {
+    padding: 11px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.onboard-cta:hover {
+    transform: translateY(-2px);
+    opacity: 0.85;
+}
+
+/* Bottom CTA Bar */
+.onboard-cta-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 36px 48px;
+    background: rgba(26, 140, 78, 0.1);
+    border: 1px solid rgba(26, 140, 78, 0.2);
+    border-radius: var(--radius-card);
+    flex-wrap: wrap;
+}
+
+.onboard-cta-text h3 {
+    font-family: var(--font-primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-white);
+    margin-bottom: 6px;
+}
+
+.onboard-cta-text p {
+    font-size: 0.9rem;
+    color: rgba(var(--color-text-rgb), 0.55);
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .onboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .onboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .onboard-cta-bar {
+        flex-direction: column;
+        text-align: center;
+        padding: 28px 24px;
+    }
+}

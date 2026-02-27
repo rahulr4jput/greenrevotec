@@ -1,0 +1,148 @@
+.floating-actions-container {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.floating-btn {
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.scroll-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--grad-primary);
+    color: var(--color-white);
+    font-size: 1rem;
+}
+
+.quote-btn {
+    padding: 0 20px;
+    height: 48px;
+    border-radius: 30px;
+    background: #fff;
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    gap: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.quote-btn .btn-text {
+    white-space: nowrap;
+}
+
+.quote-btn:hover {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+/* Animations from ScrollToTop */
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(26, 140, 78, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 15px rgba(26, 140, 78, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(26, 140, 78, 0);
+    }
+}
+
+.scroll-btn {
+    animation: pulse-glow 3s ease infinite;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .floating-actions-container {
+        bottom: 90px;
+        /* above mobile bottom nav */
+        right: 20px;
+        flex-direction: column-reverse;
+        align-items: flex-end;
+    }
+
+    .quote-btn .btn-text {
+        display: none;
+    }
+
+    .quote-btn {
+        width: 48px;
+        padding: 0;
+        border-radius: 50%;
+    }
+}
+
+/* ===== Floating Contact Menu ===== */
+.floating-contact-menu {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.floating-contact-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 20px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    white-space: nowrap;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+}
+
+.floating-contact-btn svg {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.floating-contact-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+.floating-contact-btn.whatsapp {
+    background: #25d366;
+}
+
+.floating-contact-btn.phone {
+    background: #2563eb;
+}
+
+/* Active state for toggle button */
+.quote-btn.active {
+    background: #1e293b;
+    color: #fff;
+}
+
+/* Backdrop to dismiss menu */
+.floating-contact-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: transparent;
+}

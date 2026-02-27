@@ -1,0 +1,361 @@
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const { PrismaClient } = require('@prisma/client');
+const path = require('path');
+
+const prisma = new PrismaClient();
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(cors());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'build')));
+
+// API: Save Lead
+app.post('/api/leads', async (req, res) => {
+    try {
+        const { name, email, phone, subject, message, type, source, productName } = req.body;
+        const lead = await prisma.lead.create({
+            data: {
+                name,
+                email,
+                phone,
+                subject,
+                message,
+                type,
+                source,
+                productName,
+                timestamp: new Date()
+            }
+        });
+        res.json(lead);
+    } catch (error) {
+        console.error('Error creating lead:', error);
+        res.status(500).json({ error: 'Failed to create lead' });
+    }
+});
+
+// API: Get All Leads
+app.get('/api/leads', async (req, res) => {
+    try {
+        const leads = await prisma.lead.findMany({
+            orderBy: { timestamp: 'desc' }
+        });
+        res.json(leads);
+    } catch (error) {
+        console.error('Error fetching leads:', error);
+        res.status(500).json({ error: 'Failed to fetch leads' });
+    }
+});
+
+// API: Delete Lead
+app.delete('/api/leads/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.lead.deleteMany({
+            where: { id }
+        });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting lead:', error);
+        res.status(500).json({ error: 'Failed to delete lead', details: error.message });
+    }
+});
+
+// Settings APIs (to migrate other localStorage data)
+app.get('/api/settings/:key', async (req, res) => {
+    try {
+        const { key } = req.params;
+        const setting = await prisma.setting.findUnique({
+            where: { key }
+        });
+        res.json(setting ? JSON.parse(setting.value) : null);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch setting' });
+    }
+});
+
+app.post('/api/settings/:key', async (req, res) => {
+    try {
+        const { key } = req.params;
+        const { value } = req.body;
+        const setting = await prisma.setting.upsert({
+            where: { key },
+            update: { value: JSON.stringify(value) },
+            create: { key, value: JSON.stringify(value) }
+        });
+        res.json(setting);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to save setting' });
+    }
+});
+
+// API: Crops
+app.get('/api/crops', async (req, res) => {
+    try {
+        const crops = await prisma.crop.findMany({
+            orderBy: { name: 'asc' }
+        });
+        res.json(crops);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch crops' });
+    }
+});
+
+app.post('/api/crops', async (req, res) => {
+    try {
+        const { name, imageUrl, language, linkedToId } = req.body;
+        const crop = await prisma.crop.create({
+            data: { name, imageUrl, language, linkedToId }
+        });
+        res.json(crop);
+    } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(400).json({ error: 'A crop with this name already exists' });
+        }
+        res.status(500).json({ error: 'Failed to create crop' });
+    }
+});
+
+app.delete('/api/crops/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.crop.deleteMany({
+            where: { id }
+        });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting crop:', error);
+        res.status(500).json({ error: 'Failed to delete crop', details: error.message });
+    }
+});
+
+// API: Languages
+app.get('/api/languages', async (req, res) => {
+    try {
+        const languages = await prisma.language.findMany({
+            orderBy: { name: 'asc' }
+        });
+        res.json(languages);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch languages' });
+    }
+});
+
+app.post('/api/languages', async (req, res) => {
+    try {
+        const { name, script } = req.body;
+        const language = await prisma.language.create({
+            data: { name, script }
+        });
+        res.json(language);
+    } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(400).json({ error: 'A language with this name already exists' });
+        }
+        res.status(500).json({ error: 'Failed to create language' });
+    }
+});
+
+app.delete('/api/languages/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.language.deleteMany({
+            where: { id }
+        });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting language:', error);
+        res.status(500).json({ error: 'Failed to delete language', details: error.message });
+    }
+});
+
+// CATEGORIES
+app.get('/api/categories', async (req, res) => {
+    try {
+        const categories = await prisma.category.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(categories);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+});
+
+app.post('/api/categories', async (req, res) => {
+    try {
+        const { id, name, description, language, linkedToId } = req.body;
+
+        let category;
+        if (id && id.startsWith('cat-') && !id.includes(Date.now().toString())) {
+            // Logic to check if we should update or create
+        }
+
+        category = await prisma.category.upsert({
+            where: { id: id || 'temp-id' },
+            update: { name, description, language, linkedToId },
+            create: { name, description, language, linkedToId }
+        });
+        res.json(category);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to save category' });
+    }
+});
+
+app.delete('/api/categories/:id', async (req, res) => {
+    try {
+        await prisma.category.deleteMany({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        res.status(500).json({ error: 'Failed to delete category', details: error.message });
+    }
+});
+
+// PRODUCTS
+app.get('/api/products', async (req, res) => {
+    try {
+        const products = await prisma.product.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+        // Parse JSON strings back to arrays
+        const parsedProducts = products.map(p => ({
+            ...p,
+            id: p.id, // Keeping as is (number)
+            images: JSON.parse(p.images),
+            features: JSON.parse(p.features),
+            bulletPoints: JSON.parse(p.bulletPoints),
+            applicableCrops: JSON.parse(p.applicableCrops)
+        }));
+        res.json(parsedProducts);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch products' });
+    }
+});
+
+const saveProduct = async (req, res) => {
+    try {
+        const data = req.body;
+        // Parse ID as integer if it exists
+        const id = data.id && data.id !== 'undefined' ? parseInt(data.id) : null;
+
+        // Stringify arrays for SQLite
+        const dbData = {
+            ...data,
+            images: JSON.stringify(data.images || []),
+            features: JSON.stringify(data.features || []),
+            bulletPoints: JSON.stringify(data.bulletPoints || []),
+            applicableCrops: JSON.stringify(data.applicableCrops || []),
+        };
+
+        // Remove id from the data object to prevent Prisma errors
+        delete dbData.id;
+
+        let product;
+        if (id && !isNaN(id)) {
+            // Update existing
+            product = await prisma.product.upsert({
+                where: { id },
+                update: dbData,
+                create: { ...dbData, id }
+            });
+        } else {
+            // Create new
+            product = await prisma.product.create({
+                data: dbData
+            });
+        }
+        res.json(product);
+    } catch (error) {
+        console.error('Error saving product:', error);
+        res.status(500).json({ error: 'Failed to save product', details: error.message });
+    }
+};
+
+app.post('/api/products', saveProduct);
+app.put('/api/products', saveProduct);
+
+app.delete('/api/products/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const numericId = parseInt(id);
+
+        if (isNaN(numericId)) {
+            // If the ID is not a number (like the old 'temp-' IDs), just return success
+            return res.json({ success: true, message: 'Invalid ID format, skipped deletion' });
+        }
+
+        // deleteMany is robust: doesn't fail if item doesn't exist
+        const result = await prisma.product.deleteMany({ where: { id: numericId } });
+        res.json({ success: true, count: result.count });
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.status(500).json({ error: 'Failed to delete product', details: error.message });
+    }
+});
+
+// SERVICES
+app.get('/api/services', async (req, res) => {
+    try {
+        const services = await prisma.service.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+        const parsedServices = services.map(s => ({
+            ...s,
+            bulletPoints: JSON.parse(s.bulletPoints),
+            additionalImages: JSON.parse(s.additionalImages),
+            contentBlocks: JSON.parse(s.contentBlocks || '[]')
+        }));
+        res.json(parsedServices);
+    } catch (error) {
+        console.error('Error fetching services:', error);
+        res.status(500).json({ error: 'Failed to fetch services' });
+    }
+});
+
+app.post('/api/services', async (req, res) => {
+    try {
+        const data = req.body;
+        const dbData = {
+            ...data,
+            bulletPoints: JSON.stringify(data.bulletPoints || []),
+            additionalImages: JSON.stringify(data.additionalImages || []),
+            contentBlocks: JSON.stringify(data.contentBlocks || []),
+            id: data.id ? data.id.toString() : undefined
+        };
+
+        const service = await prisma.service.upsert({
+            where: { id: dbData.id || 'temp-service-id' },
+            update: dbData,
+            create: dbData
+        });
+        res.json(service);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to save service' });
+    }
+});
+
+app.delete('/api/services/:id', async (req, res) => {
+    try {
+        await prisma.service.deleteMany({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        res.status(500).json({ error: 'Failed to delete service', details: error.message });
+    }
+});
+
+// All other GET requests return the React app
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});

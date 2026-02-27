@@ -1,0 +1,321 @@
+/* ─── Full-Screen Branded Loader ──────────────────────────────────── */
+
+.pt-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: radial-gradient(ellipse at 30% 20%, #064e3b 0%, #022c22 45%, #011a15 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* ─── Background Particles ─────────────────────────────────────────── */
+
+.pt-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.pt-particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(52, 211, 153, 0.12);
+    animation: pt-float linear infinite;
+}
+
+/* Each particle has a unique size, position, and timing */
+.pt-particle-1 {
+    width: 180px;
+    height: 180px;
+    top: -60px;
+    left: -60px;
+    animation-duration: 14s;
+    opacity: 0.4;
+}
+
+.pt-particle-2 {
+    width: 80px;
+    height: 80px;
+    top: 10%;
+    left: 15%;
+    animation-duration: 10s;
+    animation-delay: -3s;
+}
+
+.pt-particle-3 {
+    width: 120px;
+    height: 120px;
+    top: 60%;
+    left: 5%;
+    animation-duration: 16s;
+    animation-delay: -8s;
+}
+
+.pt-particle-4 {
+    width: 60px;
+    height: 60px;
+    top: 80%;
+    left: 20%;
+    animation-duration: 9s;
+    animation-delay: -2s;
+}
+
+.pt-particle-5 {
+    width: 200px;
+    height: 200px;
+    top: -40px;
+    right: -80px;
+    animation-duration: 18s;
+    animation-delay: -5s;
+    opacity: 0.3;
+}
+
+.pt-particle-6 {
+    width: 90px;
+    height: 90px;
+    top: 25%;
+    right: 8%;
+    animation-duration: 12s;
+    animation-delay: -7s;
+}
+
+.pt-particle-7 {
+    width: 40px;
+    height: 40px;
+    top: 55%;
+    right: 15%;
+    animation-duration: 8s;
+    animation-delay: -1s;
+}
+
+.pt-particle-8 {
+    width: 150px;
+    height: 150px;
+    bottom: -50px;
+    right: 5%;
+    animation-duration: 15s;
+    animation-delay: -4s;
+    opacity: 0.25;
+}
+
+.pt-particle-9 {
+    width: 50px;
+    height: 50px;
+    bottom: 20%;
+    left: 30%;
+    animation-duration: 11s;
+    animation-delay: -6s;
+}
+
+.pt-particle-10 {
+    width: 100px;
+    height: 100px;
+    bottom: 10%;
+    right: 35%;
+    animation-duration: 13s;
+    animation-delay: -9s;
+    opacity: 0.2;
+}
+
+.pt-particle-11 {
+    width: 70px;
+    height: 70px;
+    top: 40%;
+    left: 45%;
+    animation-duration: 9s;
+    animation-delay: -2s;
+}
+
+.pt-particle-12 {
+    width: 30px;
+    height: 30px;
+    top: 70%;
+    left: 55%;
+    animation-duration: 7s;
+    animation-delay: -4s;
+}
+
+@keyframes pt-float {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-30px) scale(1.05);
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ─── Center Content ───────────────────────────────────────────────── */
+
+.pt-loader-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    text-align: center;
+    padding: 0 24px;
+    max-width: 480px;
+}
+
+/* ─── Logo ─────────────────────────────────────────────────────────── */
+
+.pt-logo-wrap {
+    width: 140px;
+    height: 140px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-shadow:
+        0 0 0 8px rgba(52, 211, 153, 0.06),
+        0 0 70px rgba(52, 211, 153, 0.15);
+    animation: pt-logo-pulse 2.4s ease-in-out infinite;
+}
+
+.pt-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 24px rgba(52, 211, 153, 0.4));
+}
+
+@keyframes pt-logo-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.06), 0 0 60px rgba(52, 211, 153, 0.12);
+    }
+
+    50% {
+        box-shadow: 0 0 0 12px rgba(52, 211, 153, 0.1), 0 0 80px rgba(52, 211, 153, 0.2);
+    }
+}
+
+/* ─── Brand Name ───────────────────────────────────────────────────── */
+
+.pt-brand-name {
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Tagline ──────────────────────────────────────────────────────── */
+
+.pt-tagline {
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    font-weight: 500;
+    color: #6ee7b7;
+    margin: 0;
+    letter-spacing: 0.01em;
+    line-height: 1.5;
+    text-shadow: 0 1px 12px rgba(52, 211, 153, 0.3);
+}
+
+/* ─── Progress Stem + Dots ─────────────────────────────────────────── */
+
+.pt-stem-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    width: 200px;
+}
+
+.pt-stem {
+    width: 100%;
+    height: 4px;
+    background: rgba(52, 211, 153, 0.15);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.pt-stem-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #34d399, #10b981, #059669);
+    border-radius: 99px;
+    animation: pt-grow 2.5s ease-in-out infinite;
+}
+
+@keyframes pt-grow {
+    0% {
+        width: 0%;
+        opacity: 0.6;
+    }
+
+    60% {
+        width: 85%;
+        opacity: 1;
+    }
+
+    80% {
+        width: 95%;
+        opacity: 1;
+    }
+
+    100% {
+        width: 100%;
+        opacity: 0.8;
+    }
+}
+
+/* Bouncing dots */
+.pt-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.pt-dots span {
+    width: 8px;
+    height: 8px;
+    background: #34d399;
+    border-radius: 50%;
+    animation: pt-bounce 1.2s ease-in-out infinite;
+}
+
+.pt-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.pt-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes pt-bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0.75);
+        opacity: 0.5;
+    }
+
+    40% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* ─── Sub label ────────────────────────────────────────────────────── */
+
+.pt-sub {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+    margin-top: 4px;
+}

@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  phone       String
+  subject     String?
+  message     String
+  type        String   @default("general")
+  source      String   @default("Contact Form")
+  timestamp   DateTime @default(now())
+  productName String?
+}
+
+model Setting {
+  key   String @id
+  value String // JSON stringified
+}
+
+model Crop {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  imageUrl   String?
+  language   String   @default("English")
+  linkedToId String?  // ID of the English version
+  createdAt  DateTime @default(now())
+}
+
+model Language {
+  id        String   @id @default(cuid())
+  name      String   @unique // English Name (e.g., Hindi)
+  script    String   // Native Script (e.g., हिन्दी)
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  language    String   @default("English")
+  linkedToId  String?
+  createdAt   DateTime @default(now())
+
+  @@unique([name, language])
+}
+
+model Product {
+  id              Int      @id @default(autoincrement())
+  name            String
+  category        String
+  description     String
+  images          String // JSON stringified array
+  badge           String   @default("New")
+  badgeColor      String   @default("#10b981")
+  IconComponent   String   @default("FaLeaf")
+  iconColor       String   @default("#10b981")
+  rating          Float    @default(5.0)
+  reviews         Int      @default(0)
+  features        String // JSON stringified array
+  sku             String?
+  mrp             Float?
+  salePrice       Float?
+  manufacturer    String?
+  mfrPartNumber   String?
+  unitCount       String?
+  weight          String?
+  bulletPoints    String // JSON stringified array
+  isActive        Boolean  @default(true)
+  status          String   @default("published") // "published" or "draft"
+  unit            String?  @default("Kg")
+  showPricing     Boolean  @default(true)
+  applicableCrops String // JSON stringified array
+  language        String   @default("English")
+  linkedToId      String?
+  createdAt       DateTime @default(now())
+}
+
+model Service {
+  id               String   @id @default(cuid())
+  title            String
+  description      String
+  tag              String?
+  gradient         String   @default("linear-gradient(135deg, #1a8c4e, #12653a)")
+  iconName         String   @default("FaLeaf")
+  customIcon       String?
+  image            String
+  thumbnail        String?
+  contentBlocks    String? // JSON stringified array of { image, title, description }
+  bulletPoints     String // JSON stringified array
+  additionalImages String // JSON stringified array
+  isActive         Boolean  @default(true)
+  language         String   @default("English")
+  linkedToId       String?
+  createdAt        DateTime @default(now())
+}
