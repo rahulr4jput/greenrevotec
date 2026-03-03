@@ -656,6 +656,31 @@ app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-app.listen(PORT, () => {
+// Database auto-seeding
+const seedDatabase = async () => {
+    try {
+        const settingsCount = await prisma.setting.count();
+        if (settingsCount === 0) {
+            console.log('Database empty: Seeding default settings...');
+            const defaultSettingsPath = path.join(__dirname, 'src', 'data', 'defaultSettings.json');
+            if (fs.existsSync(defaultSettingsPath)) {
+                const defaultSettings = JSON.parse(fs.readFileSync(defaultSettingsPath, 'utf8'));
+                for (const s of defaultSettings) {
+                    await prisma.setting.create({
+                        data: { key: s.key, value: s.value }
+                    });
+                }
+                console.log(`Successfully seeded ${defaultSettings.length} default settings.`);
+            } else {
+                console.log('No defaultSettings.json found, skipping seed.');
+            }
+        }
+    } catch (error) {
+        console.error('Error seeding database:', error);
+    }
+};
+
+app.listen(PORT, async () => {
+    await seedDatabase();
     console.log(`Server is running on port ${PORT}`);
 });
