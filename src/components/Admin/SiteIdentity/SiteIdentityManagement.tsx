@@ -22,7 +22,7 @@ interface SiteIdentity {
 const SiteIdentityManagement: React.FC = () => {
     const [config, setConfig] = useState<SiteIdentity>({
         logo: { url: '/logo.png', show: true },
-        favicon: { url: '/favicon.ico', show: true },
+        favicon: { url: '/logo.png', show: true },
         adminSidebarLogo: { url: '/logo.png', show: true },
         siteName: 'GreenRevotec',
         tagline: 'Modernizing Agriculture for a Greener Tomorrow'

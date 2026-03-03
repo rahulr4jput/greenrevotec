@@ -25,6 +25,7 @@ const defaultBrands = [
 
 const BrandsTrust: React.FC = () => {
     const [brandList, setBrandList] = useState<any[]>([]);
+    const [isVisible, setIsVisible] = useState<boolean | null>(null);
     const [header, setHeader] = useState({
         label: "Trusted By",
         title: "Brands That Trust Us",
@@ -38,6 +39,25 @@ const BrandsTrust: React.FC = () => {
     ]);
 
     useEffect(() => {
+        // Check section visibility from API (source of truth)
+        const checkVisibility = async () => {
+            try {
+                const res = await fetch('/api/settings/admin_section_visibility');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data === 'object') {
+                        setIsVisible(data['trusted-by'] !== false);
+                        return;
+                    }
+                }
+            } catch { }
+            // Fallback to localStorage
+            const raw = localStorage.getItem('admin_section_visibility');
+            const data = raw ? JSON.parse(raw) : null;
+            setIsVisible(data ? data['trusted-by'] !== false : true);
+        };
+        checkVisibility();
+
         const stored = localStorage.getItem('admin_brands');
         if (stored) {
             const parsed = JSON.parse(stored);
@@ -60,7 +80,15 @@ const BrandsTrust: React.FC = () => {
         if (storedStats) {
             setStats(JSON.parse(storedStats));
         }
+
+        // Re-check on storage events
+        const onStorage = () => { checkVisibility(); };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
     }, []);
+
+    // Don't render while checking OR if hidden by admin
+    if (isVisible === false) return null;
 
     return (
         <section className="section brands-trust" id="brands">

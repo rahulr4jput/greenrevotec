@@ -1,0 +1,553 @@
+/* =============================================
+   CareersManagement.css — White Admin Theme
+   Matches the admin panel's light aesthetic
+   ============================================= */
+
+.careers-management-container {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Page Header ───────────────────────────── */
+.modern-admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e8ecf0;
+}
+
+.modern-admin-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modern-admin-header .header-icon {
+    color: #16a34a;
+    background: #dcfce7;
+    padding: 9px;
+    border-radius: 10px;
+    font-size: 1.2rem;
+}
+
+/* ─── Primary Button ─────────────────────────── */
+.modern-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.modern-btn-primary {
+    background: #16a34a;
+    color: #ffffff;
+}
+
+.modern-btn-primary:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.modern-btn-primary:disabled {
+    background: #a3a3a3;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.modern-btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.modern-btn-secondary:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+/* ─── Job Creation Form Card ─────────────────── */
+.modern-form-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e8ecf0;
+    animation: scaleIn 0.25s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Form sections */
+.modern-form-section {
+    margin-bottom: 28px;
+    background: #f8fafc;
+    padding: 22px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.modern-form-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.career-section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.career-section-title svg {
+    color: #16a34a;
+    font-size: 0.85rem;
+}
+
+/* 2-column grid inside form sections */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+/* Form groups */
+.modern-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.modern-form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Inputs and Select */
+.modern-input {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #111827;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.modern-input:focus {
+    outline: none;
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.modern-input::placeholder {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.modern-textarea {
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+    font-family: inherit;
+}
+
+/* Requirements input row */
+.requirement-input-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.requirement-input-wrapper .modern-input {
+    flex: 1;
+}
+
+.modern-btn-add {
+    background: #16a34a;
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.modern-btn-add:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+}
+
+/* Requirement tags */
+.requirements-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.requirement-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    animation: fadeIn 0.2s ease;
+}
+
+.requirement-tag button {
+    background: none;
+    border: none;
+    color: #166534;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    opacity: 0.7;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.requirement-tag button:hover {
+    opacity: 1;
+    color: #dc2626;
+}
+
+/* ─── Toggle Switch ──────────────────────────── */
+.modern-switch-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 0;
+}
+
+.modern-switch {
+    width: 44px;
+    height: 24px;
+    background: #d1d5db;
+    border-radius: 50px;
+    position: relative;
+    transition: background 0.25s ease;
+    flex-shrink: 0;
+}
+
+.modern-switch.active {
+    background: #16a34a;
+}
+
+.modern-switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    transition: left 0.25s ease;
+}
+
+.modern-switch.active .modern-switch-thumb {
+    left: 23px;
+}
+
+.modern-switch-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Helper text */
+.modern-form-group small {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+/* ─── Form Footer Actions ────────────────────── */
+.form-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #e8ecf0;
+}
+
+/* ─── Jobs Grid (listing view) ───────────────── */
+.modern-jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Individual Job Card */
+.modern-job-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    transition: box-shadow 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-job-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #16a34a, #4ade80);
+}
+
+.modern-job-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+/* Prominent Job Code ID Bar */
+.job-code-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    margin: -20px -20px 16px -20px;
+    background: #f0fdf4;
+    border-bottom: 1px solid #dcfce7;
+    border-radius: 12px 12px 0 0;
+    font-size: 0.8rem;
+}
+
+.job-code-label {
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.7rem;
+}
+
+.job-code-value {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    color: #15803d;
+    letter-spacing: 0.5px;
+}
+
+/* Card header row */
+.job-card-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.modern-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.modern-badge.active {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.modern-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.modern-badge.dept {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.job-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 6px;
+    line-height: 1.3;
+}
+
+/* Detail rows in the card */
+.job-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: #4b5563;
+}
+
+.detail-icon {
+    color: #16a34a;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+}
+
+/* Card action buttons row */
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.job-card-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.action-btn.edit:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #2563eb;
+}
+
+.action-btn.delete:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+/* ─── Empty / Loading states ────────────────── */
+.admin-loading,
+.admin-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+    background: #ffffff;
+    border: 1px dashed #d1d5db;
+    border-radius: 12px;
+}
+
+.admin-empty-state .empty-icon {
+    font-size: 2.5rem;
+    color: #d1d5db;
+    margin-bottom: 12px;
+    display: block;
+}
+
+/* ─── Error Message ──────────────────────────── */
+.admin-error-message {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+/* ─── Responsive ─────────────────────────────── */
+@media (max-width: 768px) {
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .modern-jobs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modern-admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .form-actions-footer {
+        flex-direction: column-reverse;
+    }
+
+    .form-actions-footer .modern-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

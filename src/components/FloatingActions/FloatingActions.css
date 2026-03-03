@@ -1,3 +1,4 @@
+/* ── Container ───────────────────────────────────────────────────── */
 .floating-actions-container {
     position: fixed;
     bottom: 32px;
@@ -8,35 +9,119 @@
     gap: 12px;
 }
 
+/* ── Near-footer: force dark glass even in light theme ───────────── */
+/* Smooth transition when entering/leaving footer zone */
+.floating-actions-container,
+.floating-actions-container .floating-btn,
+.floating-actions-container .floating-contact-btn {
+    transition:
+        background 0.4s ease,
+        border-color 0.4s ease,
+        box-shadow 0.4s ease,
+        color 0.4s ease;
+}
+
+/* When footer is visible, override light theme with dark glass */
+[data-theme="light"] .floating-actions-container.near-footer .floating-btn {
+    background: rgba(255, 255, 255, 0.10) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    box-shadow:
+        0 8px 28px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-theme="light"] .floating-actions-container.near-footer .floating-btn:hover {
+    background: rgba(255, 255, 255, 0.20) !important;
+    border-color: rgba(255, 255, 255, 0.30) !important;
+}
+
+/* Scroll btn — stay green-tinted in footer zone */
+[data-theme="light"] .floating-actions-container.near-footer .scroll-btn {
+    background: rgba(46, 163, 75, 0.30) !important;
+    border-color: rgba(46, 163, 75, 0.45) !important;
+    color: #4ade80 !important;
+}
+
+/* Theme btn — show yellow sun in footer zone (dark bg = sun makes sense) */
+[data-theme="light"] .floating-actions-container.near-footer .theme-btn {
+    color: #f1c40f !important;
+}
+
+/* Quote btn — light text in footer zone */
+[data-theme="light"] .floating-actions-container.near-footer .quote-btn {
+    color: rgba(255, 255, 255, 0.88) !important;
+}
+
+
+
+/* ── Shared Glass Base ───────────────────────────────────────────── */
+/* Uses CSS vars that auto-switch between dark / light theme */
 .floating-btn {
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    font-family: var(--font-secondary);
+    /* Dark mode default — dark glass */
+    background: rgba(var(--color-text-rgb), 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(var(--color-text-rgb), 0.15);
+    box-shadow:
+        0 8px 28px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(var(--color-text-rgb), 0.08);
+    color: rgba(var(--color-text-rgb), 0.9);
+    transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
+.floating-btn:hover {
+    background: rgba(var(--color-text-rgb), 0.18);
+    border-color: rgba(var(--color-text-rgb), 0.28);
+    box-shadow:
+        0 12px 36px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(var(--color-text-rgb), 0.14);
+}
+
+/* ── Scroll to Top ───────────────────────────────────────────────── */
 .scroll-btn {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: var(--grad-primary);
-    color: var(--color-white);
+    background: rgba(46, 163, 75, 0.28);
+    border-color: rgba(46, 163, 75, 0.4);
+    color: var(--color-primary-light);
     font-size: 1rem;
+    animation: float-pulse 3s ease infinite;
 }
 
+.scroll-btn:hover {
+    background: rgba(46, 163, 75, 0.45);
+    border-color: rgba(46, 163, 75, 0.6);
+    color: #fff;
+}
+
+[data-theme="light"] .scroll-btn {
+    background: rgba(46, 163, 75, 0.15);
+    border-color: rgba(46, 163, 75, 0.35);
+    color: var(--color-primary);
+}
+
+[data-theme="light"] .scroll-btn:hover {
+    background: rgba(46, 163, 75, 0.3);
+    color: var(--color-primary-dark);
+}
+
+/* ── Get in Touch / Quote ────────────────────────────────────────── */
 .quote-btn {
     padding: 0 20px;
     height: 48px;
     border-radius: 30px;
-    background: #fff;
-    color: var(--color-primary);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     gap: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    color: rgba(var(--color-text-rgb), 0.85);
 }
 
 .quote-btn .btn-text {
@@ -44,37 +129,52 @@
 }
 
 .quote-btn:hover {
-    background: var(--color-primary);
-    color: #fff;
+    color: rgba(var(--color-text-rgb), 1);
 }
 
-/* Animations from ScrollToTop */
-@keyframes pulse-glow {
+.quote-btn.active {
+    background: rgba(var(--color-text-rgb), 0.2);
+    border-color: rgba(var(--color-text-rgb), 0.3);
+}
+
+/* ── Theme Toggle ────────────────────────────────────────────────── */
+.theme-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 1.05rem;
+    /* Dark mode: yellow sun */
+    color: #f1c40f;
+}
+
+[data-theme="light"] .theme-btn {
+    /* Light mode: blue/slate moon */
+    color: #475569;
+}
+
+/* ── Pulse / Float animation ─────────────────────────────────────── */
+@keyframes float-pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(26, 140, 78, 0.4);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 0 0 rgba(46, 163, 75, 0.45);
     }
 
-    70% {
-        box-shadow: 0 0 0 15px rgba(26, 140, 78, 0);
+    50% {
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 0 10px rgba(46, 163, 75, 0);
     }
 
     100% {
-        box-shadow: 0 0 0 0 rgba(26, 140, 78, 0);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 0 0 rgba(46, 163, 75, 0.45);
     }
 }
 
-.scroll-btn {
-    animation: pulse-glow 3s ease infinite;
-}
-
-/* Mobile Adjustments */
+/* ── Mobile ──────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .floating-actions-container {
         bottom: 90px;
-        /* above mobile bottom nav */
-        right: 20px;
+        right: 18px;
         flex-direction: column-reverse;
         align-items: flex-end;
+        gap: 10px;
     }
 
     .quote-btn .btn-text {
@@ -88,7 +188,7 @@
     }
 }
 
-/* ===== Floating Contact Menu ===== */
+/* ── Contact Popup Menu ──────────────────────────────────────────── */
 .floating-contact-menu {
     position: absolute;
     bottom: 60px;
@@ -108,11 +208,20 @@
     font-size: 0.9rem;
     font-weight: 600;
     text-decoration: none;
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
     white-space: nowrap;
-    transition: transform 0.2s, box-shadow 0.2s;
-    font-family: inherit;
+    font-family: var(--font-secondary);
+    color: #fff;
+    /* Tinted glass */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.floating-contact-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .floating-contact-btn svg {
@@ -120,26 +229,76 @@
     flex-shrink: 0;
 }
 
-.floating-contact-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
-}
-
+/* ── WhatsApp ────────────────────────────────────────────────────── */
 .floating-contact-btn.whatsapp {
-    background: #25d366;
+    /* Dark mode: translucent green glass */
+    background: rgba(37, 211, 102, 0.22);
+    border-color: rgba(37, 211, 102, 0.4);
+    color: #25d366;
 }
 
-.floating-contact-btn.phone {
-    background: #2563eb;
-}
-
-/* Active state for toggle button */
-.quote-btn.active {
-    background: #1e293b;
+.floating-contact-btn.whatsapp:hover {
+    background: rgba(37, 211, 102, 0.38);
+    border-color: rgba(37, 211, 102, 0.6);
     color: #fff;
 }
 
-/* Backdrop to dismiss menu */
+[data-theme="light"] .floating-contact-btn.whatsapp {
+    /* Light mode: solid brand green for clear recognition */
+    background: #25d366;
+    border-color: #1db954;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="light"] .floating-contact-btn.whatsapp:hover {
+    background: #1db954;
+    box-shadow: 0 10px 28px rgba(37, 211, 102, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* ── Phone / Call Us ─────────────────────────────────────────────── */
+.floating-contact-btn.phone {
+    /* Dark mode: translucent blue glass */
+    background: rgba(37, 99, 235, 0.22);
+    border-color: rgba(37, 99, 235, 0.4);
+    color: #60a5fa;
+}
+
+.floating-contact-btn.phone:hover {
+    background: rgba(37, 99, 235, 0.38);
+    border-color: rgba(37, 99, 235, 0.6);
+    color: #fff;
+}
+
+[data-theme="light"] .floating-contact-btn.phone {
+    /* Light mode: solid brand blue */
+    background: #2563eb;
+    border-color: #1d4ed8;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="light"] .floating-contact-btn.phone:hover {
+    background: #1d4ed8;
+    box-shadow: 0 10px 28px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Near-footer: revert to glass even in light theme */
+[data-theme="light"] .floating-actions-container.near-footer .floating-contact-btn.whatsapp {
+    background: rgba(37, 211, 102, 0.28) !important;
+    border-color: rgba(37, 211, 102, 0.45) !important;
+    color: #25d366 !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="light"] .floating-actions-container.near-footer .floating-contact-btn.phone {
+    background: rgba(37, 99, 235, 0.28) !important;
+    border-color: rgba(37, 99, 235, 0.45) !important;
+    color: #60a5fa !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ── Backdrop ────────────────────────────────────────────────────── */
 .floating-contact-backdrop {
     position: fixed;
     inset: 0;

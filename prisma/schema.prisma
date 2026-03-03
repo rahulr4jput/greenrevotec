@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -45,6 +45,17 @@ model Language {
 }
 
 model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  language    String   @default("English")
+  linkedToId  String?
+  createdAt   DateTime @default(now())
+
+  @@unique([name, language])
+}
+
+model ServiceCategory {
   id          String   @id @default(cuid())
   name        String
   description String?
@@ -103,4 +114,35 @@ model Service {
   language         String   @default("English")
   linkedToId       String?
   createdAt        DateTime @default(now())
+}
+
+model JobOpening {
+  id           String   @id @default(cuid())
+  jobCode      String?  @unique
+  title        String
+  department   String
+  location     String
+  type         String   // Full-time, Part-time, Contract, etc.
+  description  String   // JSON stringified or rich text HTML
+  requirements String   // JSON stringified array or rich text
+  contactEmail String?  // Optional specific email for this opening
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  applications JobApplication[]
+}
+
+model JobApplication {
+  id             String      @id @default(cuid())
+  appCode        String?     @unique
+  jobOpeningId   String
+  jobOpening     JobOpening  @relation(fields: [jobOpeningId], references: [id], onDelete: Cascade)
+  candidateName  String
+  email          String
+  phone          String
+  experience     String?     // Years of experience or text description
+  coverLetter    String?
+  resumePath     String      // Path to the uploaded resume file
+  status         String      @default("Pending") // Pending, Reviewed, Interviewed, Rejected, Hired
+  createdAt      DateTime    @default(now())
 }

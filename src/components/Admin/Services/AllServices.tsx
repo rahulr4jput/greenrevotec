@@ -34,6 +34,7 @@ interface AdminService {
     additionalImages?: string[];
     language?: string;
     linkedToId?: string | null;
+    serviceCategory?: string;
 }
 
 interface Language {
@@ -65,15 +66,27 @@ const AllServices: React.FC = () => {
     const [language, setLanguage] = useState('English');
     const [linkedToId, setLinkedToId] = useState<string | null>(null);
     const [availableLanguages, setAvailableLanguages] = useState<Language[]>([]);
+    const [serviceCategory, setServiceCategory] = useState('');
+    const [serviceCategories, setServiceCategories] = useState<{ id: string; name: string }[]>([]);
+    const [multilangEnabled, setMultilangEnabled] = useState<boolean>(() => {
+        const v = localStorage.getItem('admin_multilang_enabled');
+        return v === null ? false : v === 'true';
+    });
 
     useEffect(() => {
         fetchData();
-
         const visibility = localStorage.getItem('admin_section_visibility');
         if (visibility) {
             const parsed = JSON.parse(visibility);
             setIsSectionVisible(parsed.services !== false);
         }
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'admin_multilang_enabled') {
+                setMultilangEnabled(e.newValue !== 'false');
+            }
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
     }, []);
 
     const fetchData = async () => {
@@ -91,12 +104,18 @@ const AllServices: React.FC = () => {
             if (langRes.ok) {
                 setAvailableLanguages(langData);
             }
+
+            // Load Service Categories from API
+            const catRes = await fetch('/api/service-categories');
+            if (catRes.ok) {
+                const catData = await catRes.json();
+                setServiceCategories(catData);
+            }
         } catch (error) {
             console.error('Error fetching services:', error);
             toast.error('Failed to load services');
         }
     };
-
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -206,6 +225,7 @@ const AllServices: React.FC = () => {
         setIsActive(service.isActive !== false);
         setLanguage(service.language || 'English');
         setLinkedToId(service.linkedToId || null);
+        setServiceCategory(service.serviceCategory || '');
         setBulletPoints(service.bulletPoints && service.bulletPoints.length > 0 ? service.bulletPoints : ['']);
         setContentBlocks(service.contentBlocks || []);
         setIsModalOpen(true);
@@ -227,6 +247,7 @@ const AllServices: React.FC = () => {
         setBulletPoints(['']);
         setContentBlocks([]);
         setLinkedToId(null);
+        setServiceCategory('');
         setIsModalOpen(false);
     };
 
@@ -293,7 +314,8 @@ const AllServices: React.FC = () => {
             bulletPoints: bulletPoints.filter(bp => bp.trim() !== ''),
             contentBlocks,
             language,
-            linkedToId
+            linkedToId,
+            serviceCategory
         };
 
         try {
@@ -367,41 +389,35 @@ const AllServices: React.FC = () => {
     return (
         <div className="admin-page-container">
             <ToastContainer position="bottom-right" theme="colored" />
-            <div className="admin-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-                <div>
-                    <h1 className="admin-page-title">Manage Services</h1>
-                    <p className="admin-page-subtitle">Create and update the services displayed on the homepage carousel.</p>
+            <div className="categories-header filter-toolbar-header">
+                <div className="filter-header-title">
+                    <h3 style={{ fontSize: '1.5rem', color: '#111827', marginBottom: '8px' }}>Manage Services</h3>
+                    <p style={{ color: '#6b7280' }}>Create and update the services displayed on the homepage carousel.</p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: isSectionVisible ? '#ecfdf5' : '#fef2f2', border: `1px solid ${isSectionVisible ? '#10b981' : '#ef4444'}`, borderRadius: '8px', cursor: 'pointer' }} onClick={toggleSectionVisibility}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: isSectionVisible ? '#047857' : '#b91c1c' }}>{isSectionVisible ? 'VISIBLE' : 'HIDDEN'} ON HOME</span>
-                        <div style={{ width: '36px', height: '20px', background: isSectionVisible ? '#10b981' : '#ef4444', borderRadius: '10px', position: 'relative', transition: '0.3s' }}>
-                            <div style={{ width: '14px', height: '14px', background: 'white', borderRadius: '50%', position: 'absolute', top: '3px', left: isSectionVisible ? '19px' : '3px', transition: '0.3s' }}></div>
+
+                <div className="filter-toolbar-actions">
+                    <div className="visibility-toggle" style={{ background: isSectionVisible ? '#ecfdf5' : '#fef2f2', border: `1px solid ${isSectionVisible ? '#10b981' : '#ef4444'}` }} onClick={toggleSectionVisibility}>
+                        <span style={{ color: isSectionVisible ? '#047857' : '#b91c1c' }}>{isSectionVisible ? 'VISIBLE' : 'HIDDEN'} ON HOME</span>
+                        <div className="toggle-switch" style={{ background: isSectionVisible ? '#10b981' : '#ef4444' }}>
+                            <div className="toggle-knob" style={{ left: isSectionVisible ? '19px' : '3px' }}></div>
                         </div>
                     </div>
-                    <div style={{ position: 'relative', width: '250px' }}>
-                        <FaSearch style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+
+                    <div className="filter-search-box">
+                        <FaSearch className="search-icon" />
                         <input
                             type="text"
                             placeholder="Search by title or tag..."
+                            className="search-input"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px 10px 36px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '8px',
-                                fontSize: '0.9rem',
-                                backgroundColor: '#fff',
-                                outline: 'none',
-                                transition: 'border-color 0.2s',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                            }}
-                            onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
-                            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                         />
                     </div>
-                    <button className="btn-save" onClick={() => setIsModalOpen(true)} style={{ margin: 0, padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+
+                    <button
+                        className="btn-save btn-add-product"
+                        onClick={() => { resetForm(); setIsModalOpen(true); }}
+                    >
                         <FaPlus /> Add New Service
                     </button>
                 </div>
@@ -412,6 +428,7 @@ const AllServices: React.FC = () => {
                     <thead>
                         <tr>
                             <th>Service</th>
+                            <th>Category</th>
                             <th>Tag</th>
                             <th>Icon & Theme</th>
                             <th>Status</th>
@@ -442,7 +459,7 @@ const AllServices: React.FC = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
                                     >
-                                        <td>
+                                        <td data-label="Service">
                                             <div className="product-list-item" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                                 <div className="product-list-thumb" style={{ width: '90px', height: '60px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                                     <img src={service.thumbnail || service.image} alt={service.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -465,12 +482,21 @@ const AllServices: React.FC = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="Category">
+                                            {service.serviceCategory ? (
+                                                <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', fontSize: '0.78rem', fontWeight: 600, padding: '3px 10px', borderRadius: '50px', whiteSpace: 'nowrap' }}>
+                                                    {service.serviceCategory}
+                                                </span>
+                                            ) : (
+                                                <span style={{ color: '#d1d5db', fontSize: '0.82rem' }}>—</span>
+                                            )}
+                                        </td>
+                                        <td data-label="Tag">
                                             <span className="category-badge">
                                                 {service.tag}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Icon & Theme">
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                 <div style={{
                                                     width: '36px', height: '36px', borderRadius: '8px',
@@ -485,7 +511,7 @@ const AllServices: React.FC = () => {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="Status">
                                             <button
                                                 className={`status-toggle ${service.isActive !== false ? 'active' : 'inactive'}`}
                                                 onClick={() => toggleStatus(service)}
@@ -493,7 +519,7 @@ const AllServices: React.FC = () => {
                                                 {service.isActive !== false ? 'Active' : 'Hidden'}
                                             </button>
                                         </td>
-                                        <td style={{ textAlign: 'right' }}>
+                                        <td data-label="Actions" style={{ textAlign: 'right' }}>
                                             <div className="action-buttons">
                                                 <button className="btn-icon edit" onClick={() => openEditModal(service)} title="Edit Service">
                                                     <FaPencilAlt />
@@ -533,52 +559,70 @@ const AllServices: React.FC = () => {
                             </div>
                             <form onSubmit={handleSaveService} className="modal-form scrollable-form">
                                 {/* Language Selection at the top */}
-                                <div className="category-form-group" style={{ background: '#f0f9ff', padding: '16px', borderRadius: '12px', border: '1px solid #bae6fd', marginBottom: '24px', gridColumn: '1/-1' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontWeight: 'bold' }}>
-                                        <FaLanguage /> Selected Language for this Entry
-                                    </label>
-                                    <select
-                                        className="category-form-input"
-                                        value={language}
-                                        onChange={(e) => {
-                                            const newLang = e.target.value;
-                                            setLanguage(newLang);
-                                            setLinkedToId(null); // Reset link when language changes
-                                            // Auto-clear fields if they don't match the new script
-                                            if (newLang !== 'English') {
-                                                if (title && !validateScript(title, newLang)) setTitle('');
-                                                if (description && !validateScript(description, newLang)) setDescription('');
-
-                                                const someBulletsMismatch = bulletPoints.some(bp => bp.trim() && !validateScript(bp, newLang));
-                                                if (someBulletsMismatch) {
-                                                    setBulletPoints(['']);
+                                {multilangEnabled && (
+                                    <div className="category-form-group" style={{ background: '#f0f9ff', padding: '16px', borderRadius: '12px', border: '1px solid #bae6fd', marginBottom: '24px', gridColumn: '1/-1' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontWeight: 'bold' }}>
+                                            <FaLanguage /> Selected Language for this Entry
+                                        </label>
+                                        <select
+                                            className="category-form-input"
+                                            value={language}
+                                            onChange={(e) => {
+                                                const newLang = e.target.value;
+                                                setLanguage(newLang);
+                                                setLinkedToId(null);
+                                                if (newLang !== 'English') {
+                                                    if (title && !validateScript(title, newLang)) setTitle('');
+                                                    if (description && !validateScript(description, newLang)) setDescription('');
+                                                    const someBulletsMismatch = bulletPoints.some(bp => bp.trim() && !validateScript(bp, newLang));
+                                                    if (someBulletsMismatch) setBulletPoints(['']);
                                                 }
-                                            }
-                                        }}
-                                        required
-                                        style={{ marginBottom: 0, marginTop: '8px', border: '1px solid #7dd3fc', background: 'white' }}
-                                    >
-                                        <option value="English">English</option>
-                                        {availableLanguages.map(lang => (
-                                            <option key={lang.id} value={lang.name}>{lang.name} ({lang.script})</option>
-                                        ))}
-                                    </select>
-                                    <p style={{ fontSize: '11px', color: '#0ea5e9', marginTop: '6px' }}>
-                                        Please ensure all text fields match the selected language's script.
-                                    </p>
-                                </div>
+                                            }}
+                                            required
+                                            style={{ marginBottom: 0, marginTop: '8px', border: '1px solid #7dd3fc', background: 'white' }}
+                                        >
+                                            <option value="English">English</option>
+                                            {availableLanguages.map(lang => (
+                                                <option key={lang.id} value={lang.name}>{lang.name} ({lang.script})</option>
+                                            ))}
+                                        </select>
+                                        <p style={{ fontSize: '11px', color: '#0ea5e9', marginTop: '6px' }}>
+                                            Please ensure all text fields match the selected language's script.
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div className="form-grid">
                                     <h4 style={{ gridColumn: '1 / -1', marginBottom: '10px', fontSize: '1.05rem', color: 'var(--color-primary)', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <FaLeaf /> Basic Information
                                     </h4>
-                                    <div className="category-form-group">
-                                        <label>Title *</label>
-                                        <input type="text" className="category-form-input" value={title} onChange={e => setTitle(e.target.value)} required placeholder="e.g. Smart Irrigation" />
-                                    </div>
-                                    <div className="category-form-group">
-                                        <label>Short Tag/Badge *</label>
-                                        <input type="text" className="category-form-input" value={tag} onChange={e => setTag(e.target.value)} required placeholder="e.g. IoT Smart" />
+                                    <div className="responsive-form-grid-2">
+                                        <div className="category-form-group">
+                                            <label>Title *</label>
+                                            <input type="text" className="category-form-input" value={title} onChange={e => setTitle(e.target.value)} required placeholder="e.g. Smart Irrigation" />
+                                        </div>
+                                        <div className="category-form-group">
+                                            <label>Short Tag/Badge *</label>
+                                            <input type="text" className="category-form-input" value={tag} onChange={e => setTag(e.target.value)} required placeholder="e.g. IoT Smart" />
+                                        </div>
+                                        <div className="category-form-group">
+                                            <label>Service Category</label>
+                                            <select
+                                                className="category-form-input"
+                                                value={serviceCategory}
+                                                onChange={e => setServiceCategory(e.target.value)}
+                                            >
+                                                <option value="">— None —</option>
+                                                {serviceCategories.map(cat => (
+                                                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                                ))}
+                                            </select>
+                                            {serviceCategories.length === 0 && (
+                                                <p style={{ fontSize: '0.78rem', color: '#f59e0b', marginTop: '5px' }}>
+                                                    No categories yet. <a href="/admin/services/categories" target="_blank" rel="noreferrer" style={{ color: '#16a34a' }}>Create categories first →</a>
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="category-form-group full-width">
                                         <label>Description *</label>
@@ -646,54 +690,56 @@ const AllServices: React.FC = () => {
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="21.17" y1="8" x2="12" y2="8"></line><line x1="3.95" y1="6.06" x2="8.54" y2="14"></line><line x1="10.88" y1="21.94" x2="15.46" y2="14"></line></svg> Visual Configuration
                                     </h4>
 
-                                    <div className="category-form-group">
-                                        <label>Icon Selection *</label>
-                                        <select className="category-form-input" value={iconName} onChange={e => setIconName(e.target.value)}>
-                                            <option value="Custom">Custom Upload</option>
-                                            {AVAILABLE_ICONS.map(icon => (
-                                                <option key={icon.name} value={icon.name}>{icon.name.replace('Fa', '')} Icon</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {iconName === 'Custom' && (
+                                    <div className="responsive-form-grid-2">
                                         <div className="category-form-group">
-                                            <label>Upload Custom Icon (Recommended 100x100px) *</label>
-                                            <div className="image-upload-wrapper">
-                                                {customIcon ? (
-                                                    <div className="image-preview" style={{ width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '10px' }}>
-                                                        <img src={customIcon} alt="Custom Icon Preview" style={{ maxWidth: '40px', maxHeight: '40px', objectFit: 'contain' }} />
-                                                    </div>
-                                                ) : null}
-                                                <label className="upload-btn" style={{
-                                                    display: 'inline-block',
-                                                    padding: '10px 16px',
-                                                    backgroundColor: '#f3f4f6',
-                                                    border: '1px solid #d1d5db',
-                                                    borderRadius: '8px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '0.9rem',
-                                                    color: '#374151',
-                                                    fontWeight: 500,
-                                                    transition: 'all 0.2s'
-                                                }}>
-                                                    <input type="file" accept="image/*" onChange={handleCustomIconUpload} style={{ display: 'none' }} />
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <FaPlus style={{ color: '#9ca3af' }} />
-                                                        {customIcon ? 'Change Custom Icon' : 'Choose Custom Icon'}
-                                                    </div>
-                                                </label>
-                                            </div>
+                                            <label>Icon Selection *</label>
+                                            <select className="category-form-input" value={iconName} onChange={e => setIconName(e.target.value)}>
+                                                <option value="Custom">Custom Upload</option>
+                                                {AVAILABLE_ICONS.map(icon => (
+                                                    <option key={icon.name} value={icon.name}>{icon.name.replace('Fa', '')} Icon</option>
+                                                ))}
+                                            </select>
                                         </div>
-                                    )}
-                                    <div className="category-form-group">
-                                        <label>Theme Gradient *</label>
-                                        <select className="category-form-input" value={gradient} onChange={e => setGradient(e.target.value)}>
-                                            <option value="linear-gradient(135deg, #1a8c4e, #12653a)">Green (Default)</option>
-                                            <option value="linear-gradient(135deg, #f5a623, #d97706)">Orange/Gold</option>
-                                            <option value="linear-gradient(135deg, #38bdf8, #0284c7)">Blue</option>
-                                            <option value="linear-gradient(135deg, #e879f9, #9333ea)">Purple</option>
-                                        </select>
+
+                                        {iconName === 'Custom' && (
+                                            <div className="category-form-group">
+                                                <label>Upload Custom Icon (Recommended 100x100px) *</label>
+                                                <div className="image-upload-wrapper">
+                                                    {customIcon ? (
+                                                        <div className="image-preview" style={{ width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '10px' }}>
+                                                            <img src={customIcon} alt="Custom Icon Preview" style={{ maxWidth: '40px', maxHeight: '40px', objectFit: 'contain' }} />
+                                                        </div>
+                                                    ) : null}
+                                                    <label className="upload-btn" style={{
+                                                        display: 'inline-block',
+                                                        padding: '10px 16px',
+                                                        backgroundColor: '#f3f4f6',
+                                                        border: '1px solid #d1d5db',
+                                                        borderRadius: '8px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.9rem',
+                                                        color: '#374151',
+                                                        fontWeight: 500,
+                                                        transition: 'all 0.2s'
+                                                    }}>
+                                                        <input type="file" accept="image/*" onChange={handleCustomIconUpload} style={{ display: 'none' }} />
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            <FaPlus style={{ color: '#9ca3af' }} />
+                                                            {customIcon ? 'Change Custom Icon' : 'Choose Custom Icon'}
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="category-form-group">
+                                            <label>Theme Gradient *</label>
+                                            <select className="category-form-input" value={gradient} onChange={e => setGradient(e.target.value)}>
+                                                <option value="linear-gradient(135deg, #1a8c4e, #12653a)">Green (Default)</option>
+                                                <option value="linear-gradient(135deg, #f5a623, #d97706)">Orange/Gold</option>
+                                                <option value="linear-gradient(135deg, #38bdf8, #0284c7)">Blue</option>
+                                                <option value="linear-gradient(135deg, #e879f9, #9333ea)">Purple</option>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div className="category-form-group">
@@ -974,7 +1020,7 @@ const AllServices: React.FC = () => {
                                         </label>
                                     </div>
                                 </div>
-                                <div className="modal-actions">
+                                <div className="modal-actions admin-form-actions">
                                     <button type="button" className="btn-cancel" onClick={resetForm}>Cancel</button>
                                     <button type="submit" className="btn-save"><FaSave /> {editingServiceId ? 'Update Service' : 'Save Service'}</button>
                                 </div>

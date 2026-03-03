@@ -3,6 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const { PrismaClient } = require('@prisma/client');
 const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
 
 const prisma = new PrismaClient();
 const app = express();
@@ -14,6 +16,86 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'build')));
+
+// Multer Configuration for Resume Uploads
+const uploadDir = path.join(__dirname, 'uploads', 'resumes');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['.pdf', '.doc', '.docx'];
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (allowedTypes.includes(ext)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only PDF and Word documents are allowed'));
+        }
+    }
+});
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ─── ID Code Generators ────────────────────────
+
+// Generate Job Opening Code: JOB-{DEPT}-{YYYYMMDD}-{SEQ}
+async function generateJobCode(department) {
+    const deptCode = department
+        .replace(/[^a-zA-Z]/g, '')
+        .substring(0, 3)
+        .toUpperCase();
+    const today = new Date();
+    const dateStr = today.getFullYear().toString() +
+        String(today.getMonth() + 1).padStart(2, '0') +
+        String(today.getDate()).padStart(2, '0');
+    const prefix = `JOB-${deptCode}-${dateStr}-`;
+
+    // Find the latest job with the same prefix
+    const latest = await prisma.jobOpening.findFirst({
+        where: { jobCode: { startsWith: prefix } },
+        orderBy: { jobCode: 'desc' }
+    });
+
+    let seq = 1;
+    if (latest && latest.jobCode) {
+        const lastSeq = parseInt(latest.jobCode.split('-').pop(), 10);
+        if (!isNaN(lastSeq)) seq = lastSeq + 1;
+    }
+
+    return `${prefix}${String(seq).padStart(3, '0')}`;
+}
+
+// Generate App Code: APP-{JOBCODE}-{SEQ}
+async function generateAppCode(jobCode) {
+    const prefix = `APP-${jobCode}-`;
+
+    const latest = await prisma.jobApplication.findFirst({
+        where: { appCode: { startsWith: prefix } },
+        orderBy: { appCode: 'desc' }
+    });
+
+    let seq = 1;
+    if (latest && latest.appCode) {
+        const lastSeq = parseInt(latest.appCode.split('-').pop(), 10);
+        if (!isNaN(lastSeq)) seq = lastSeq + 1;
+    }
+
+    return `${prefix}${String(seq).padStart(3, '0')}`;
+}
 
 // API: Save Lead
 app.post('/api/leads', async (req, res) => {
@@ -217,7 +299,82 @@ app.delete('/api/categories/:id', async (req, res) => {
     }
 });
 
+// SERVICE CATEGORIES
+app.get('/api/service-categories', async (req, res) => {
+    try {
+        const categories = await prisma.serviceCategory.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(categories);
+    } catch (error) {
+        console.error('Error fetching service categories:', error);
+        res.status(500).json({ error: 'Failed to fetch service categories' });
+    }
+});
+
+app.post('/api/service-categories', async (req, res) => {
+    try {
+        const { name, description, language, linkedToId } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ error: 'Category name is required' });
+        }
+        const category = await prisma.serviceCategory.create({
+            data: {
+                name: name.trim(),
+                description: description ? description.trim() : null,
+                language: language || 'English',
+                linkedToId: linkedToId || null
+            }
+        });
+        res.json(category);
+    } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(400).json({ error: 'A service category with this name already exists for the selected language' });
+        }
+        console.error('Error creating service category:', error);
+        res.status(500).json({ error: 'Failed to create service category' });
+    }
+});
+
+app.put('/api/service-categories/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, language, linkedToId } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ error: 'Category name is required' });
+        }
+        const category = await prisma.serviceCategory.update({
+            where: { id },
+            data: {
+                name: name.trim(),
+                description: description ? description.trim() : null,
+                language: language || 'English',
+                linkedToId: linkedToId || null
+            }
+        });
+        res.json(category);
+    } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(400).json({ error: 'A service category with this name already exists for the selected language' });
+        }
+        console.error('Error updating service category:', error);
+        res.status(500).json({ error: 'Failed to update service category' });
+    }
+});
+
+app.delete('/api/service-categories/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.serviceCategory.delete({ where: { id } });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting service category:', error);
+        res.status(500).json({ error: 'Failed to delete service category', details: error.message });
+    }
+});
+
 // PRODUCTS
+
 app.get('/api/products', async (req, res) => {
     try {
         const products = await prisma.product.findMany({
@@ -244,7 +401,7 @@ const saveProduct = async (req, res) => {
         // Parse ID as integer if it exists
         const id = data.id && data.id !== 'undefined' ? parseInt(data.id) : null;
 
-        // Stringify arrays for SQLite
+        // Stringify arrays for DB storage (JSON columns)
         const dbData = {
             ...data,
             images: JSON.stringify(data.images || []),
@@ -348,6 +505,149 @@ app.delete('/api/services/:id', async (req, res) => {
     } catch (error) {
         console.error('Error deleting service:', error);
         res.status(500).json({ error: 'Failed to delete service', details: error.message });
+    }
+});
+
+// --- CAREERS MODULE ---
+
+// API: Get All Job Openings
+app.get('/api/jobs', async (req, res) => {
+    try {
+        const jobs = await prisma.jobOpening.findMany({
+            orderBy: { createdAt: 'desc' },
+            where: req.query.public === 'true' ? { isActive: true } : undefined
+        });
+
+        // Parse JSON fields
+        const parsedJobs = jobs.map(job => ({
+            ...job,
+            requirements: JSON.parse(job.requirements || '[]')
+        }));
+
+        res.json(parsedJobs);
+    } catch (error) {
+        console.error('Error fetching jobs:', error);
+        res.status(500).json({ error: 'Failed to fetch jobs' });
+    }
+});
+
+// API: Create/Update Job Opening
+app.post('/api/jobs', async (req, res) => {
+    try {
+        const data = req.body;
+        const dbData = {
+            title: data.title,
+            department: data.department,
+            location: data.location,
+            type: data.type,
+            description: data.description,
+            requirements: JSON.stringify(data.requirements || []),
+            contactEmail: data.contactEmail,
+            isActive: data.isActive !== false
+        };
+
+        if (data.id) {
+            // Update existing job (don't regenerate jobCode)
+            const job = await prisma.jobOpening.update({
+                where: { id: data.id },
+                data: dbData
+            });
+            res.json(job);
+        } else {
+            // Create new job — generate jobCode
+            const jobCode = await generateJobCode(data.department);
+            const job = await prisma.jobOpening.create({
+                data: { ...dbData, jobCode }
+            });
+            res.json(job);
+        }
+    } catch (error) {
+        console.error('Error saving job:', error);
+        res.status(500).json({ error: 'Failed to save job opening' });
+    }
+});
+
+// API: Delete Job Opening
+app.delete('/api/jobs/:id', async (req, res) => {
+    try {
+        await prisma.jobOpening.delete({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting job:', error);
+        res.status(500).json({ error: 'Failed to delete job opening' });
+    }
+});
+
+// API: Submit Job Application
+app.post('/api/applications', upload.single('resume'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Resume file is required' });
+        }
+
+        const { jobOpeningId, candidateName, email, phone, experience, coverLetter } = req.body;
+
+        // Get the job opening to read its jobCode
+        const jobOpening = await prisma.jobOpening.findUnique({ where: { id: jobOpeningId } });
+        if (!jobOpening) {
+            return res.status(400).json({ error: 'Invalid job opening' });
+        }
+
+        const jobCode = jobOpening.jobCode || 'JOB-UNK';
+        const appCode = await generateAppCode(jobCode);
+
+        // Rename the uploaded resume file
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const newFilename = `${jobCode}_${appCode}_Resume${ext}`;
+        const oldPath = req.file.path;
+        const newPath = path.join(uploadDir, newFilename);
+        fs.renameSync(oldPath, newPath);
+
+        const application = await prisma.jobApplication.create({
+            data: {
+                appCode,
+                jobOpeningId,
+                candidateName,
+                email,
+                phone,
+                experience,
+                coverLetter,
+                resumePath: `/uploads/resumes/${newFilename}`
+            }
+        });
+
+        res.json({ success: true, application });
+    } catch (error) {
+        console.error('Error submitting application:', error);
+        res.status(500).json({ error: 'Failed to submit application', details: error.message });
+    }
+});
+
+// API: Get Applications (Leads)
+app.get('/api/applications', async (req, res) => {
+    try {
+        const applications = await prisma.jobApplication.findMany({
+            include: {
+                jobOpening: {
+                    select: { title: true, department: true, jobCode: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(applications);
+    } catch (error) {
+        console.error('Error fetching applications:', error);
+        res.status(500).json({ error: 'Failed to fetch applications' });
+    }
+});
+
+// API: Download Resume File
+app.get('/api/resumes/:filename', (req, res) => {
+    const filePath = path.join(__dirname, 'uploads', 'resumes', req.params.filename);
+    if (fs.existsSync(filePath)) {
+        res.download(filePath);
+    } else {
+        res.status(404).json({ error: 'File not found' });
     }
 });
 

@@ -54,14 +54,20 @@
     opacity: 0.8;
 }
 
-/* Slider Nav */
+.mobile-only-bg {
+    display: none !important;
+}
+
+/* Slider Nav - pinned to bottom of hero */
 .hero-slider-nav {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: row;
     justify-content: center;
     gap: 12px;
-    margin-top: 20px;
-    margin-bottom: 60px;
     z-index: 10;
 }
 
@@ -140,6 +146,25 @@
     z-index: 2;
     text-align: center;
     padding-top: 40px;
+}
+
+/* Glassmorphism Explore Button */
+.hero .btn-primary {
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+}
+
+.hero .btn-primary:hover {
+    background: rgba(255, 255, 255, 0.22) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
 }
 
 .hero-badge {
@@ -348,7 +373,20 @@
 @media (max-width: 768px) {
     .hero {
         padding: 100px 0 0;
-        min-height: auto;
+        min-height: 100vh;
+    }
+
+    .hero-image {
+        background-position: var(--mobile-bg-pos, center) !important;
+        background-size: var(--mobile-bg-size, cover) !important;
+    }
+
+    .desktop-only-bg {
+        display: none !important;
+    }
+
+    .mobile-only-bg {
+        display: block !important;
     }
 
     .hero-stats-grid {
@@ -383,6 +421,8 @@
 
     .hero-actions {
         margin-bottom: 40px;
+        justify-content: center;
+        width: 100%;
     }
 
     .scroll-indicator {
@@ -396,15 +436,14 @@
     }
 
     .hero-actions {
-        flex-direction: column;
-        width: 100%;
-        max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
+        width: 85%;
+        margin: 0 auto 40px auto;
     }
 
     .hero-actions .btn {
         width: 100%;
+        font-size: 1rem;
+        justify-content: center;
     }
 
     .hero-trust {
@@ -424,4 +463,73 @@
         width: 36px;
         height: 36px;
     }
+}
+
+/* =============================================
+   LIGHT MODE — keep Hero visually identical to dark mode
+   ============================================= */
+[data-theme="light"] .hero {
+    /* Restore dark CSS variables scoped to the hero */
+    --color-dark: #0a0f1a;
+    --color-dark-2: #111827;
+    --color-dark-3: #1f2937;
+    --color-dark-4: #374151;
+    --color-white: #ffffff;
+    --color-text-rgb: 255, 255, 255;
+    --color-primary-light: #4ade80;
+    --grad-hero: linear-gradient(135deg, rgba(10, 15, 26, 0.95) 0%, rgba(0, 80, 157, 0.4) 50%, rgba(46, 163, 75, 0.4) 100%);
+}
+
+/* Force dark overlay gradient in light mode */
+[data-theme="light"] .hero-bg-gradient {
+    background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(26, 163, 75, 0.2) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 60% at 80% 50%, rgba(0, 80, 157, 0.15) 0%, transparent 60%),
+        linear-gradient(180deg, rgba(10, 15, 26, 0.75) 0%, rgba(10, 15, 26, 0.3) 50%, rgba(10, 15, 26, 0.85) 100%);
+}
+
+/* Keep all text elements white in light mode */
+[data-theme="light"] .hero-title,
+[data-theme="light"] .hero-subtitle,
+[data-theme="light"] .trust-label,
+[data-theme="light"] .trust-brand,
+[data-theme="light"] .hero-stat-number,
+[data-theme="light"] .hero-stat-label,
+[data-theme="light"] .scroll-circle {
+    color: #ffffff;
+}
+
+/* Keep badge dark-styled */
+[data-theme="light"] .section-label,
+[data-theme="light"] .hero-badge {
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.3);
+    background: rgba(74, 222, 128, 0.08);
+}
+
+/* Keep stat cards dark */
+[data-theme="light"] .hero-stat {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Keep stats bar dark */
+[data-theme="light"] .hero-stats {
+    background: rgba(10, 15, 26, 0.85);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Keep slider dots dark-styled */
+[data-theme="light"] .slider-dot {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="light"] .slider-dot.active {
+    background: #4ade80;
+}
+
+/* Keep scroll indicator dark */
+[data-theme="light"] .scroll-circle {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
 }

@@ -13,16 +13,67 @@ import 'react-toastify/dist/ReactToastify.css';
 
 type SlideNavigateTo = 'page-products' | 'page-services' | 'section-products' | 'section-services';
 
+// --- Image Compression Helper ---
+const compressImage = (file: File, callback: (base64: string) => void, maxWidth = 1920, maxHeight = 1080) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width = Math.round((width * maxHeight) / height);
+                    height = maxHeight;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.drawImage(img, 0, 0, width, height);
+                // Compress to 60% quality WebP
+                const base64 = canvas.toDataURL('image/webp', 0.6);
+                callback(base64);
+            } else {
+                // Fallback
+                callback(event.target?.result as string);
+            }
+        };
+        img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+};
+
 interface HeroSlide {
     id: string;
     title: string;
     highlight: string;
     subtitle: string;
+    tagline?: string;
+    taglineHighlight?: string;
     type: 'video' | 'image';
     src: string;
     isActive: boolean;
     navigateTo?: SlideNavigateTo;
+    linkedProductId?: string;
+    linkedServiceId?: string;
+    showSubtitle?: boolean;
+    mobileSrc?: string;
+    mobileFocus?: string;
+    mobileZoom?: string;
 }
+
+interface SlimProduct { id: string | number; name: string; }
+interface SlimService { id: string; title: string; }
 
 interface HeroStat {
     id: string;
@@ -97,10 +148,18 @@ const HeroManagement: React.FC = () => {
         title: string;
         highlight: string;
         subtitle: string;
+        tagline?: string;
+        taglineHighlight?: string;
         type: 'video' | 'image';
         src: string;
         isActive: boolean;
         navigateTo: SlideNavigateTo;
+        linkedProductId: string;
+        linkedServiceId: string;
+        showSubtitle: boolean;
+        mobileSrc?: string;
+        mobileFocus?: string;
+        mobileZoom?: string;
     }>({
         title: '',
         highlight: '',
@@ -108,8 +167,17 @@ const HeroManagement: React.FC = () => {
         type: 'image',
         src: '',
         isActive: true,
-        navigateTo: 'page-products'
+        navigateTo: 'page-products',
+        linkedProductId: '',
+        linkedServiceId: '',
+        showSubtitle: true,
+        mobileSrc: '',
+        mobileFocus: 'center',
+        mobileZoom: 'cover',
     });
+
+    const [availableProducts, setAvailableProducts] = useState<SlimProduct[]>([]);
+    const [availableServices, setAvailableServices] = useState<SlimService[]>([]);
 
     const [stats, setStats] = useState<HeroStat[]>([]);
     const [isStatsVisible, setIsStatsVisible] = useState(true);
@@ -159,6 +227,15 @@ const HeroManagement: React.FC = () => {
 
     useEffect(() => {
         fetchHeroConfig();
+        // Load available products & services for the deep-link dropdowns
+        fetch('/api/products')
+            .then(r => r.ok ? r.json() : [])
+            .then((data: any[]) => setAvailableProducts(data.filter(p => p.status !== 'draft').map(p => ({ id: p.id, name: p.name }))))
+            .catch(() => { });
+        fetch('/api/services')
+            .then(r => r.ok ? r.json() : [])
+            .then((data: any[]) => setAvailableServices(data.filter(s => s.isActive !== false).map(s => ({ id: s.id, title: s.title }))))
+            .catch(() => { });
     }, []);
 
     const saveHeroConfig = async (updatedData: any) => {
@@ -260,17 +337,25 @@ const HeroManagement: React.FC = () => {
             title: slide.title,
             highlight: slide.highlight,
             subtitle: slide.subtitle,
+            tagline: slide.tagline || '',
+            taglineHighlight: slide.taglineHighlight || '',
             type: slide.type,
             src: slide.src,
             isActive: slide.isActive,
-            navigateTo: slide.navigateTo || 'page-products'
+            navigateTo: slide.navigateTo || 'page-products',
+            linkedProductId: slide.linkedProductId || '',
+            linkedServiceId: slide.linkedServiceId || '',
+            showSubtitle: slide.showSubtitle !== false,
+            mobileSrc: slide.mobileSrc || '',
+            mobileFocus: slide.mobileFocus || 'center',
+            mobileZoom: slide.mobileZoom || 'cover',
         });
         setIsSlideModalOpen(true);
     };
 
     const openAdd = () => {
         setEditingSlide(null);
-        setFormData({ title: '', highlight: '', subtitle: '', type: 'image', src: '', isActive: true, navigateTo: 'page-products' });
+        setFormData({ title: '', highlight: '', subtitle: '', tagline: '', taglineHighlight: '', type: 'image', src: '', isActive: true, navigateTo: 'page-products', linkedProductId: '', linkedServiceId: '', showSubtitle: true, mobileSrc: '', mobileFocus: 'center', mobileZoom: 'cover' });
         setIsSlideModalOpen(true);
     };
 
@@ -342,7 +427,21 @@ const HeroManagement: React.FC = () => {
         reader.readAsDataURL(file);
     };
 
+    // ─── White-theme style constants for slide modal ─────────────────────────
+    const inputSt: React.CSSProperties = {
+        width: '100%', boxSizing: 'border-box', padding: '10px 12px',
+        border: '1.5px solid #d1d5db', borderRadius: 8,
+        background: '#fff', color: '#111827', fontSize: '0.9rem', outline: 'none',
+    };
+    const labelSt: React.CSSProperties = {
+        display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: 6,
+    };
+    const selectSt: React.CSSProperties = {
+        ...inputSt, cursor: 'pointer', appearance: 'auto',
+    };
+
     return (
+
         <div className="admin-page-container">
             <ToastContainer position="bottom-right" theme="colored" />
             <div className="admin-page-header" style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -646,145 +745,348 @@ const HeroManagement: React.FC = () => {
             <AnimatePresence>
                 {isSlideModalOpen && (
                     <div className="modal-overlay">
-                        <motion.div className="modal-content category-form-card" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} style={{ maxWidth: '600px', width: '90%' }}>
-                            <div className="modal-header">
-                                <h3>{editingSlide ? 'Edit Hero Slide' : 'Add New Hero Slide'}</h3>
-                                <button className="btn-close" onClick={() => setIsSlideModalOpen(false)}><FaTimes /></button>
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            style={{
+                                background: '#ffffff',
+                                borderRadius: 16,
+                                boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+                                maxWidth: 640,
+                                width: '90%',
+                                maxHeight: '90vh',
+                                overflowY: 'auto',
+                                border: '1px solid #e5e7eb',
+                            }}
+                        >
+                            {/* Modal Header */}
+                            <div style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                padding: '20px 24px', borderBottom: '1px solid #f3f4f6',
+                                background: '#f9fafb', borderRadius: '16px 16px 0 0',
+                            }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <FaImage style={{ color: 'var(--color-primary)' }} />
+                                    {editingSlide ? 'Edit Hero Slide' : 'Add New Hero Slide'}
+                                </h3>
+                                <button
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', padding: 4 }}
+                                    onClick={() => setIsSlideModalOpen(false)}
+                                ><FaTimes size={18} /></button>
                             </div>
-                            <form onSubmit={handleSave} style={{ padding: '24px' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                    <div className="category-form-group">
-                                        <label>Main Title *</label>
-                                        <input type="text" className="category-form-input" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="e.g. Empowering" required />
+
+                            <form onSubmit={handleSave} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                                {/* Title + Highlight */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                    <div>
+                                        <label style={labelSt}>Main Title *</label>
+                                        <input
+                                            style={inputSt}
+                                            type="text"
+                                            value={formData.title}
+                                            onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                            placeholder="e.g. Empowering"
+                                            required
+                                        />
                                     </div>
-                                    <div className="category-form-group">
-                                        <label>Highlighted Text *</label>
-                                        <input type="text" className="category-form-input" value={formData.highlight} onChange={(e) => setFormData({ ...formData, highlight: e.target.value })} placeholder="e.g. Modern Farming" required />
+                                    <div>
+                                        <label style={labelSt}>Highlighted Text *</label>
+                                        <input
+                                            style={inputSt}
+                                            type="text"
+                                            value={formData.highlight}
+                                            onChange={e => setFormData({ ...formData, highlight: e.target.value })}
+                                            placeholder="e.g. Modern Farming"
+                                            required
+                                        />
                                     </div>
                                 </div>
 
-                                <div className="category-form-group">
-                                    <label>Subtitle Paragraph *</label>
-                                    <textarea className="category-form-input" value={formData.subtitle} onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })} rows={3} placeholder="Enter a compelling description..." required />
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                    <div className="category-form-group">
-                                        <label>Media Type</label>
-                                        <div style={{ display: 'flex', gap: '10px' }}>
-                                            <button
-                                                type="button"
-                                                className={`btn-save ${formData.type === 'image' ? 'active' : ''}`}
-                                                style={{ flex: 1, justifyContent: 'center', background: formData.type === 'image' ? 'var(--color-primary)' : 'white', color: formData.type === 'image' ? 'white' : '#6b7280', border: '1px solid #e5e7eb' }}
-                                                onClick={() => setFormData({ ...formData, type: 'image' })}
-                                            >
-                                                <FaImage /> Image
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className={`btn-save ${formData.type === 'video' ? 'active' : ''}`}
-                                                style={{ flex: 1, justifyContent: 'center', background: formData.type === 'video' ? 'var(--color-primary)' : 'white', color: formData.type === 'video' ? 'white' : '#6b7280', border: '1px solid #e5e7eb' }}
-                                                onClick={() => setFormData({ ...formData, type: 'video' })}
-                                            >
-                                                <FaVideo /> Video
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="category-form-group">
-                                        <label>{formData.type === 'image' ? 'Image Source' : 'Video URL/Path'} *</label>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {/* Subtitle */}
+                                <div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                        <label style={{ ...labelSt, marginBottom: 0 }}>Subtitle Paragraph *</label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', cursor: 'pointer', color: '#4b5563' }}>
                                             <input
-                                                type="text"
-                                                className="category-form-input"
-                                                value={formData.src}
-                                                onChange={(e) => setFormData({ ...formData, src: e.target.value })}
-                                                placeholder={formData.type === 'image' ? 'https://... or upload below' : '/video.mp4'}
-                                                style={{ marginBottom: 0 }}
-                                                required
+                                                type="checkbox"
+                                                checked={formData.showSubtitle !== false}
+                                                onChange={e => setFormData({ ...formData, showSubtitle: e.target.checked })}
                                             />
-                                            {formData.type === 'image' && (
-                                                <div style={{ padding: '4px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <span style={{ fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}>
-                                                        Ideal Size: 1920 x 1080px (16:9)
-                                                    </span>
-                                                </div>
-                                            )}
-                                            {formData.type === 'image' && (
-                                                <div style={{ position: 'relative' }}>
-                                                    <input
-                                                        type="file"
-                                                        id="hero-file-upload"
-                                                        accept="image/*"
-                                                        onChange={handleFileUpload}
-                                                        style={{ display: 'none' }}
-                                                    />
-                                                    <label
-                                                        htmlFor="hero-file-upload"
-                                                        className="btn-save"
-                                                        style={{
-                                                            width: '100%',
-                                                            justifyContent: 'center',
-                                                            background: '#f9fafb',
-                                                            color: '#374151',
-                                                            border: '1px solid #e5e7eb',
-                                                            boxShadow: 'none',
-                                                            padding: '8px',
-                                                            fontSize: '0.85rem'
-                                                        }}
-                                                    >
-                                                        <FaPlus style={{ fontSize: '0.9rem' }} /> Upload from Computer
-                                                    </label>
-                                                </div>
-                                            )}
+                                            Visible in Hero
+                                        </label>
+                                    </div>
+                                    <textarea
+                                        style={{ ...inputSt, minHeight: 80, resize: 'vertical' }}
+                                        value={formData.subtitle}
+                                        onChange={e => setFormData({ ...formData, subtitle: e.target.value })}
+                                        rows={3}
+                                        placeholder="Enter a compelling description..."
+                                        required
+                                    />
+                                </div>
+
+                                {/* Tagline — two-colour split */}
+                                <div>
+                                    <label style={labelSt}>
+                                        Tagline
+                                        <span style={{ fontWeight: 400, color: '#9ca3af', fontSize: '0.8em' }}> (subheading below main title)</span>
+                                    </label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ffffff', border: '1px solid #d1d5db', display: 'inline-block' }} />
+                                                White text
+                                            </div>
+                                            <input
+                                                style={inputSt}
+                                                type="text"
+                                                value={formData.tagline || ''}
+                                                onChange={e => setFormData({ ...formData, tagline: e.target.value })}
+                                                placeholder="Through Smart"
+                                            />
                                         </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                                <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'linear-gradient(135deg,#f5a623,#e88c16)', display: 'inline-block' }} />
+                                                Gold highlight text
+                                            </div>
+                                            <input
+                                                style={inputSt}
+                                                type="text"
+                                                value={formData.taglineHighlight || ''}
+                                                onChange={e => setFormData({ ...formData, taglineHighlight: e.target.value })}
+                                                placeholder="GreenRevotec"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginTop: 5 }}>Leave both blank to use default: "Through Smart <span style={{ color: '#f5a623' }}>GreenRevotec</span>"</div>
+                                </div>
+
+                                {/* Media Type + Source */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                    <div>
+                                        <label style={labelSt}>Media Type</label>
+                                        <div style={{ display: 'flex', gap: 8 }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, type: 'image' })}
+                                                style={{
+                                                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                                    padding: '9px 0', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+                                                    background: formData.type === 'image' ? 'var(--color-primary)' : '#fff',
+                                                    color: formData.type === 'image' ? '#fff' : '#6b7280',
+                                                    border: `1.5px solid ${formData.type === 'image' ? 'var(--color-primary)' : '#d1d5db'}`,
+                                                    transition: '0.2s',
+                                                }}
+                                            ><FaImage size={13} /> Image</button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, type: 'video' })}
+                                                style={{
+                                                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                                    padding: '9px 0', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+                                                    background: formData.type === 'video' ? 'var(--color-primary)' : '#fff',
+                                                    color: formData.type === 'video' ? '#fff' : '#6b7280',
+                                                    border: `1.5px solid ${formData.type === 'video' ? 'var(--color-primary)' : '#d1d5db'}`,
+                                                    transition: '0.2s',
+                                                }}
+                                            ><FaVideo size={13} /> Video</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style={labelSt}>{formData.type === 'image' ? 'Image URL / Upload' : 'Video Path'} *</label>
+                                        <input
+                                            style={{ ...inputSt, marginBottom: formData.type === 'image' ? 6 : 0 }}
+                                            type="text"
+                                            value={formData.src}
+                                            onChange={e => setFormData({ ...formData, src: e.target.value })}
+                                            placeholder={formData.type === 'image' ? 'https://... or upload' : '/hero-bg.mp4'}
+                                            required
+                                        />
+                                        {formData.type === 'image' && (
+                                            <>
+                                                <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontStyle: 'italic', marginBottom: 6 }}>Desktop Ideal: 1920×1080px (16:9)</div>
+                                                <input type="file" id="hero-file-upload-desktop" accept="image/*" onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        if (file.size > 5 * 1024 * 1024) {
+                                                            toast.warning("Image is very large and might take a moment to compress.");
+                                                        }
+                                                        compressImage(file, (base64) => {
+                                                            setFormData({ ...formData, src: base64 });
+                                                        }, 1920, 1080);
+                                                    }
+                                                }} style={{ display: 'none' }} />
+                                                <label htmlFor="hero-file-upload-desktop" style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                                    padding: '8px', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem',
+                                                    background: '#f9fafb', color: '#374151', border: '1.5px dashed #d1d5db', fontWeight: 500,
+                                                    marginBottom: 12
+                                                }}>
+                                                    <FaPlus size={11} /> Upload Desktop Image
+                                                </label>
+
+                                                {/* Mobile Image Upload */}
+                                                <label style={{ ...labelSt, marginTop: 12 }}>Mobile Hero Image (Optional)</label>
+                                                <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontStyle: 'italic', marginBottom: 6 }}>Mobile Ideal: 1080×1920px (9:16). Falls back to desktop image if empty.</div>
+                                                {formData.mobileSrc && (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, padding: '4px 8px', background: '#ecfdf5', borderRadius: 6, border: '1px solid #10b981' }}>
+                                                        <span style={{ fontSize: '0.75rem', color: '#047857', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Mobile Image Selected</span>
+                                                        <button type="button" onClick={() => setFormData({ ...formData, mobileSrc: '' })} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 4 }}><FaTimes size={12} /></button>
+                                                    </div>
+                                                )}
+                                                <input type="file" id="hero-file-upload-mobile" accept="image/*" onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        if (file.size > 5 * 1024 * 1024) {
+                                                            toast.warning("Image is very large and might take a moment to compress.");
+                                                        }
+                                                        compressImage(file, (base64) => {
+                                                            setFormData({ ...formData, mobileSrc: base64 });
+                                                        }, 1080, 1920); // Portrait max dimensions
+                                                    }
+                                                }} style={{ display: 'none' }} />
+                                                <label htmlFor="hero-file-upload-mobile" style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                                    padding: '8px', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem',
+                                                    background: formData.mobileSrc ? '#f0fdf4' : '#fef2f2',
+                                                    color: formData.mobileSrc ? '#166534' : '#991b1b',
+                                                    border: `1.5px dashed ${formData.mobileSrc ? '#86efac' : '#fca5a5'}`,
+                                                    fontWeight: 500,
+                                                    marginBottom: 16
+                                                }}>
+                                                    <FaPlus size={11} /> {formData.mobileSrc ? 'Change Mobile Image' : 'Upload Mobile Image (9:16)'}
+                                                </label>
+
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: 10, background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                                                    <div>
+                                                        <label style={{ ...labelSt, fontSize: '0.75rem', marginBottom: 4 }}>📱 Mobile Focus</label>
+                                                        <select
+                                                            style={{ ...inputSt, padding: '6px 10px', fontSize: '0.8rem', marginBottom: 0 }}
+                                                            value={formData.mobileFocus || 'center'}
+                                                            onChange={e => setFormData({ ...formData, mobileFocus: e.target.value })}
+                                                        >
+                                                            <option value="center">Center</option>
+                                                            <option value="left">Left</option>
+                                                            <option value="right">Right</option>
+                                                            <option value="top">Top</option>
+                                                            <option value="bottom">Bottom</option>
+                                                            <option value="30% 50%">Center-Left</option>
+                                                            <option value="70% 50%">Center-Right</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ ...labelSt, fontSize: '0.75rem', marginBottom: 4 }}>📱 Mobile Zoom</label>
+                                                        <select
+                                                            style={{ ...inputSt, padding: '6px 10px', fontSize: '0.8rem', marginBottom: 0 }}
+                                                            value={formData.mobileZoom || 'cover'}
+                                                            onChange={e => setFormData({ ...formData, mobileZoom: e.target.value })}
+                                                        >
+                                                            <option value="cover">Default (Cover)</option>
+                                                            <option value="contain">Fit entirely (Contain)</option>
+                                                            <option value="auto 100%">Match Height</option>
+                                                            <option value="120%">Zoom 120%</option>
+                                                            <option value="150%">Zoom 150%</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Navigate To Selector */}
-                                <div className="category-form-group" style={{ paddingTop: '4px' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                                {/* Navigate To — 4 tiles */}
+                                <div style={{ background: '#f9fafb', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px' }}>
+                                    <label style={{ ...labelSt, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                                         🔗 Explore Button — Links To
                                     </label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                                         {([
                                             { value: 'page-products', label: '🛒 Products Page', desc: 'Navigate to /products' },
                                             { value: 'page-services', label: '⚙️ Services Page', desc: 'Navigate to /services' },
-                                            { value: 'section-products', label: '📦 Products Section', desc: 'Scroll to homepage #products' },
-                                            { value: 'section-services', label: '🌿 Services Section', desc: 'Scroll to homepage #services' },
-                                        ] as { value: SlideNavigateTo; label: string; desc: string }[]).map(opt => (
-                                            <div
-                                                key={opt.value}
-                                                onClick={() => setFormData({ ...formData, navigateTo: opt.value })}
-                                                style={{
-                                                    padding: '10px 14px',
-                                                    borderRadius: '10px',
-                                                    border: `2px solid ${formData.navigateTo === opt.value ? 'var(--color-primary)' : '#e5e7eb'}`,
-                                                    background: formData.navigateTo === opt.value ? 'var(--color-primary-light, #ecfdf5)' : '#f9fafb',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s',
-                                                }}
-                                            >
-                                                <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '2px', color: formData.navigateTo === opt.value ? 'var(--color-primary)' : '#374151' }}>{opt.label}</div>
-                                                <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>{opt.desc}</div>
-                                            </div>
-                                        ))}
+                                            { value: 'section-products', label: '📦 Products Section', desc: 'Scroll to #products' },
+                                            { value: 'section-services', label: '🌿 Services Section', desc: 'Scroll to #services' },
+                                        ] as { value: SlideNavigateTo; label: string; desc: string }[]).map(opt => {
+                                            const active = formData.navigateTo === opt.value;
+                                            return (
+                                                <div
+                                                    key={opt.value}
+                                                    onClick={() => setFormData({ ...formData, navigateTo: opt.value, linkedProductId: '', linkedServiceId: '' })}
+                                                    style={{
+                                                        padding: '10px 14px', borderRadius: 10, cursor: 'pointer', transition: 'all 0.2s',
+                                                        border: `2px solid ${active ? 'var(--color-primary)' : '#e5e7eb'}`,
+                                                        background: active ? '#ecfdf5' : '#fff',
+                                                    }}
+                                                >
+                                                    <div style={{ fontWeight: 700, fontSize: '0.83rem', marginBottom: 2, color: active ? 'var(--color-primary)' : '#374151' }}>{opt.label}</div>
+                                                    <div style={{ fontSize: '0.71rem', color: '#9ca3af' }}>{opt.desc}</div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
+
+                                    {/* Deep-link: specific product */}
+                                    {formData.navigateTo === 'page-products' && availableProducts.length > 0 && (
+                                        <div style={{ marginTop: 14 }}>
+                                            <label style={{ ...labelSt, marginBottom: 6 }}>🎯 Highlight specific product (optional)</label>
+                                            <select
+                                                style={selectSt}
+                                                value={formData.linkedProductId}
+                                                onChange={e => setFormData({ ...formData, linkedProductId: e.target.value })}
+                                            >
+                                                <option value="">— All Products (no highlight) —</option>
+                                                {availableProducts.map(p => (
+                                                    <option key={p.id} value={String(p.id)}>{p.name}</option>
+                                                ))}
+                                            </select>
+                                            <p style={{ margin: '5px 0 0', fontSize: '0.72rem', color: '#9ca3af' }}>When selected, clicking the hero button will open this product's detail modal directly.</p>
+                                        </div>
+                                    )}
+
+                                    {/* Deep-link: specific service */}
+                                    {formData.navigateTo === 'page-services' && availableServices.length > 0 && (
+                                        <div style={{ marginTop: 14 }}>
+                                            <label style={{ ...labelSt, marginBottom: 6 }}>🎯 Go directly to service</label>
+                                            <select
+                                                style={selectSt}
+                                                value={formData.linkedServiceId}
+                                                onChange={e => setFormData({ ...formData, linkedServiceId: e.target.value })}
+                                            >
+                                                <option value="">— First service (default) —</option>
+                                                {availableServices.map(s => (
+                                                    <option key={s.id} value={s.id}>{s.title}</option>
+                                                ))}
+                                            </select>
+                                            <p style={{ margin: '5px 0 0', fontSize: '0.72rem', color: '#9ca3af' }}>When selected, the hero button will navigate to this specific service's page.</p>
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div className="category-form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '10px' }}>
-                                    <input type="checkbox" id="slideActive" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} style={{ width: '20px', height: '20px' }} />
-                                    <label htmlFor="slideActive" style={{ marginBottom: 0, fontWeight: 500 }}>Active (Show in Homepage Carousel)</label>
+                                {/* Active toggle */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#f9fafb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+                                    <input
+                                        type="checkbox"
+                                        id="slideActive"
+                                        checked={formData.isActive}
+                                        onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                                        style={{ width: 18, height: 18, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                                    />
+                                    <label htmlFor="slideActive" style={{ margin: 0, fontWeight: 600, fontSize: '0.88rem', color: '#374151', cursor: 'pointer' }}>
+                                        Active — Show in Homepage Carousel
+                                    </label>
                                 </div>
 
-                                <div className="modal-actions" style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                {/* Actions */}
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 4 }}>
                                     <button type="button" className="btn-cancel" onClick={() => setIsSlideModalOpen(false)}>Cancel</button>
                                     <button type="submit" className="btn-save"><FaSave /> {editingSlide ? 'Update Slide' : 'Create Slide'}</button>
                                 </div>
                             </form>
                         </motion.div>
-                    </div>
+                    </div >
                 )}
-            </AnimatePresence>
+            </AnimatePresence >
 
             <AnimatePresence>
                 {isStatModalOpen && (
@@ -852,7 +1154,7 @@ const HeroManagement: React.FC = () => {
                     </div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 };
 

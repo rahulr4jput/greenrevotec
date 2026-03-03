@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FaInbox } from 'react-icons/fa';
 import './Leads.css';
 
 interface Lead {
@@ -23,7 +24,7 @@ const Leads: React.FC = () => {
             setLoading(true);
             const response = await fetch('/api/leads');
             const data = await response.json();
-            setLeads(data);
+            setLeads(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching leads:', error);
         } finally {
@@ -72,11 +73,19 @@ const Leads: React.FC = () => {
             <div className="admin-leads-table-container">
                 {loading ? (
                     <div className="empty-state">
-                        <p>Loading leads...</p>
+                        <div className="empty-state-icon loading-spin">
+                            <div className="spinner"></div>
+                        </div>
+                        <h4>Loading leads...</h4>
+                        <p>Fetching the latest inquiries.</p>
                     </div>
                 ) : leads.length === 0 ? (
                     <div className="empty-state">
-                        <p>No leads found. When a user submits a contact form, it will appear here.</p>
+                        <div className="empty-state-icon">
+                            <FaInbox />
+                        </div>
+                        <h4>No Leads Yet</h4>
+                        <p>When users submit the contact or inquiry forms, they will appear here.</p>
                     </div>
                 ) : (
                     <div style={{ overflowX: 'auto' }}>

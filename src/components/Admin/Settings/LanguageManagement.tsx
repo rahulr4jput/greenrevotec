@@ -17,6 +17,19 @@ const LanguageManagement: React.FC = () => {
     const [name, setName] = useState('');
     const [script, setScript] = useState('');
     const [loading, setLoading] = useState(false);
+    const [multilangEnabled, setMultilangEnabled] = useState<boolean>(() => {
+        const stored = localStorage.getItem('admin_multilang_enabled');
+        return stored === null ? false : stored === 'true';
+    });
+
+    const toggleMultilang = () => {
+        const next = !multilangEnabled;
+        setMultilangEnabled(next);
+        localStorage.setItem('admin_multilang_enabled', String(next));
+        // Notify other open tabs
+        window.dispatchEvent(new StorageEvent('storage', { key: 'admin_multilang_enabled', newValue: String(next) }));
+        toast.info(`Multi-language support ${next ? 'enabled' : 'disabled'}.`);
+    };
 
     const fetchLanguages = async () => {
         try {
@@ -90,6 +103,30 @@ const LanguageManagement: React.FC = () => {
                         <h3 style={{ fontSize: '1.5rem', color: '#111827', marginBottom: '8px' }}>Language Settings</h3>
                         <p style={{ color: '#6b7280' }}>Define languages with English names and their native scripts.</p>
                     </div>
+                </div>
+
+                {/* ── Multi-Language Toggle ── */}
+                <div style={{ background: multilangEnabled ? '#f0fdf4' : '#fef9f0', border: `1.5px solid ${multilangEnabled ? '#86efac' : '#fcd34d'}`, borderRadius: '14px', padding: '20px 24px', marginBottom: '28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                            <FaLanguage style={{ color: multilangEnabled ? '#16a34a' : '#d97706', fontSize: '1.2rem' }} />
+                            <span style={{ fontWeight: 700, fontSize: '1rem', color: '#1e293b' }}>Multi-Language Support</span>
+                            <span style={{ padding: '2px 10px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 700, background: multilangEnabled ? '#dcfce7' : '#fef3c7', color: multilangEnabled ? '#15803d' : '#b45309', border: `1px solid ${multilangEnabled ? '#bbf7d0' : '#fde68a'}` }}>
+                                {multilangEnabled ? 'ENABLED' : 'DISABLED'}
+                            </span>
+                        </div>
+                        <p style={{ color: '#64748b', fontSize: '0.88rem', margin: 0 }}>
+                            {multilangEnabled
+                                ? 'Language selector is shown in all service, product and category forms.'
+                                : 'Language selector is hidden from all forms. Only English content is used.'}
+                        </p>
+                    </div>
+                    <button
+                        onClick={toggleMultilang}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', background: multilangEnabled ? '#dc2626' : '#16a34a', color: '#fff', transition: 'all 0.2s', whiteSpace: 'nowrap' }}
+                    >
+                        {multilangEnabled ? 'Turn OFF' : 'Turn ON'}
+                    </button>
                 </div>
 
                 <div className="categories-grid">

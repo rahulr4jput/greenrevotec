@@ -17,13 +17,13 @@ const DEFAULT_SECTIONS: SectionVisibility[] = [
     { id: 'products', label: 'Products', description: 'Product catalog and highlights', isActive: true },
     { id: 'services', label: 'Services', description: 'Core business service offerings', isActive: true },
     { id: 'projects', label: 'Our Projects', description: 'Featured project portfolio', isActive: true },
-    { id: 'trusted-by', label: 'Trusted By', description: 'Partner and brand logos', isActive: true },
+    { id: 'trusted-by', label: 'Trusted By', description: 'Partner and brand logos', isActive: false },
     { id: 'gallery', label: 'Our Gallery', description: 'Photo collection of work', isActive: true },
-    { id: 'recognition', label: 'Recognition', description: 'Awards and certifications', isActive: true },
+    { id: 'recognition', label: 'Recognition', description: 'Awards and certifications', isActive: false },
     { id: 'voice-of-customer', label: 'Voice of Customer', description: 'Client testimonials', isActive: true },
-    { id: 'pricing', label: 'Pricing Plans', description: 'Service and package pricing', isActive: true },
+    { id: 'pricing', label: 'Pricing Plans', description: 'Service and package pricing', isActive: false },
     { id: 'why-choose-us', label: 'Why Choose Us', description: 'Unique selling points', isActive: true },
-    { id: 'onboard', label: 'Onboard With Us', description: 'Partner onboarding section', isActive: true },
+    { id: 'onboard', label: 'Onboard With Us', description: 'Partner onboarding section', isActive: false },
     { id: 'contact', label: 'Contact Us', description: 'Contact form and info', isActive: true },
     { id: 'social', label: 'Social Media', description: 'Footer social links', isActive: true },
     { id: 'footer', label: 'Footer Section', description: 'Bottom navigation and info', isActive: true },
@@ -46,6 +46,7 @@ const SectionVisibility: React.FC = () => {
                     }));
                     setSections(mapped);
                     localStorage.setItem('admin_section_visibility', JSON.stringify(data));
+                    setLoading(false);
                     return;
                 }
             }

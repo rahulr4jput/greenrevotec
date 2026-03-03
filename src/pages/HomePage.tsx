@@ -92,13 +92,7 @@ const HomePage: React.FC = () => {
                 }
             }
 
-            const joinRevConfig = localStorage.getItem('admin_join_revolution');
-            if (joinRevConfig) {
-                const data = JSON.parse(joinRevConfig);
-                if (data.sectionVisible !== undefined) {
-                    visibilityMap.onboarding = data.sectionVisible;
-                }
-            }
+
 
             setVisibility(visibilityMap);
         };
@@ -129,7 +123,7 @@ const HomePage: React.FC = () => {
             {isVisible('recognition') && <Awards />}
             {isVisible('testimonials') && <Testimonials />}
             {isVisible('pricing') && <Pricing />}
-            {isVisible('onboarding') && <OnboardUs />}
+            {isVisible('onboard') && <OnboardUs />}
             <Contact />
         </main>
     );

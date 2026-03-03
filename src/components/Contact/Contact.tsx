@@ -22,8 +22,29 @@ interface ContactInfo {
     color: string;
 }
 
+interface Office {
+    id: string;
+    type: 'Branch Office' | 'Corporate Office';
+    addressLine1: string;
+    addressLine2: string;
+    addressLine3?: string;
+    city: string;
+    state: string;
+    pinCode: string;
+    phone1: string;
+    phone2: string;
+    email: string;
+}
+
 const Contact: React.FC = () => {
-    const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+    const defaultSocialLinks: SocialLink[] = [
+        { IconComponent: FaWhatsapp, href: 'https://wa.me/919876543210', color: '#25D366', label: 'WhatsApp' },
+        { IconComponent: FaInstagram, href: 'https://instagram.com/greenrevotec', color: '#E1306C', label: 'Instagram' },
+        { IconComponent: FaFacebook, href: 'https://facebook.com/greenrevotec', color: '#1877F2', label: 'Facebook' },
+        { IconComponent: FaYoutube, href: 'https://youtube.com/@greenrevotec', color: '#FF0000', label: 'YouTube' },
+        { IconComponent: FaLinkedin, href: 'https://linkedin.com/company/greenrevotec', color: '#0A66C2', label: 'LinkedIn' },
+    ];
+    const [socialLinks, setSocialLinks] = useState<SocialLink[]>(defaultSocialLinks);
     const [inquiryTypes, setInquiryTypes] = useState<{ label: string, value: string }[]>([
         { label: 'General Inquiry', value: 'general' },
         { label: 'Product Information', value: 'product' },
@@ -31,7 +52,35 @@ const Contact: React.FC = () => {
         { label: 'Distributorship', value: 'distribution' },
         { label: 'Corporate Partnership', value: 'corporate' },
     ]);
-    const [contactInfoItems, setContactInfoItems] = useState<ContactInfo[]>([]);
+    const defaultContactInfo: ContactInfo[] = [
+        {
+            IconComponent: FaPhone,
+            title: 'Call Us',
+            lines: ['+91 98765 43210', '+91 87654 32109'],
+            color: '#10b981'
+        },
+        {
+            IconComponent: FaEnvelope,
+            title: 'Email Us',
+            lines: ['info@greenrevotec.com', 'support@greenrevotec.com'],
+            color: '#3b82f6'
+        },
+        {
+            IconComponent: FaMapMarkerAlt,
+            title: 'Visit Us',
+            lines: ['123, Agri Park, Green Lane', 'Pune, Maharashtra - 411001'],
+            color: '#f59e0b'
+        },
+        {
+            IconComponent: FaClock,
+            title: 'Working Hours',
+            lines: ['Mon – Sat: 9:00 AM – 6:00 PM', 'Sunday: Closed'],
+            color: '#8b5cf6'
+        },
+    ];
+
+    const [contactInfoItems, setContactInfoItems] = useState<ContactInfo[]>(defaultContactInfo);
+    const [offices, setOffices] = useState<Office[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [services, setServices] = useState<any[]>([]);
     const [form, setForm] = useState({
@@ -76,23 +125,57 @@ const Contact: React.FC = () => {
             if (response.ok) {
                 const data = await response.json();
                 if (data) {
-                    const mapped = (data.info || []).map((item: any) => {
-                        let icon = FaPhone;
-                        if (item.type === 'email') icon = FaEnvelope;
-                        if (item.type === 'address') icon = FaMapMarkerAlt;
-                        if (item.type === 'hours') icon = FaClock;
+                    const contactItems: ContactInfo[] = [];
+                    let headOffice: Office = {
+                        id: 'head-office',
+                        type: 'Corporate Office',
+                        addressLine1: '',
+                        addressLine2: '',
+                        addressLine3: '',
+                        city: 'Head Office',
+                        state: '',
+                        pinCode: '',
+                        phone1: '',
+                        phone2: '',
+                        email: ''
+                    };
 
-                        return {
+                    (data.info || []).forEach((item: any) => {
+                        if (item.type === 'phone') {
+                            headOffice.phone1 = item.lines[0] || '';
+                            headOffice.phone2 = item.lines[1] || '';
+                            return; // Move to Head Office card, remove from top cards
+                        }
+                        if (item.type === 'email') {
+                            headOffice.email = item.lines[0] || '';
+                            return; // Move to Head Office card, remove from top cards
+                        }
+                        if (item.type === 'address') {
+                            headOffice.addressLine1 = item.lines[0] || '';
+                            headOffice.addressLine2 = item.lines[1] || '';
+                            headOffice.addressLine3 = item.lines[2] || '';
+                            headOffice.city = item.title === 'Visit Us' ? 'Head Office' : item.title;
+                            return;
+                        }
+
+                        // Only add remaining items (like Hours) to the top cards
+                        let icon = FaClock; // Default for hours or others
+                        contactItems.push({
                             IconComponent: icon as IconType,
                             title: item.title,
                             lines: item.lines,
                             color: item.color
-                        };
+                        });
                     });
-                    setContactInfoItems(mapped);
+
+                    setContactInfoItems(contactItems);
                     setInquiryTypes(data.inquiryTypes || []);
+
+                    const allOffices = data.offices || [];
+                    setOffices([headOffice, ...allOffices]);
                     localStorage.setItem('admin_contact_info', JSON.stringify(data.info));
                     localStorage.setItem('admin_inquiry_types', JSON.stringify(data.inquiryTypes));
+                    localStorage.setItem('admin_offices', JSON.stringify(data.offices || []));
                     return;
                 }
             }
@@ -100,19 +183,53 @@ const Contact: React.FC = () => {
             console.error("Failed to fetch Contact config:", error);
         }
 
-        // Fallback
+        // Fallback to localStorage or defaults
         const stored = localStorage.getItem('admin_contact_info');
         if (stored) {
             const parsed = JSON.parse(stored);
-            const mapped = parsed.map((item: any) => {
-                let icon = FaPhone;
-                if (item.type === 'email') icon = FaEnvelope;
-                if (item.type === 'address') icon = FaMapMarkerAlt;
-                if (item.type === 'hours') icon = FaClock;
-                return { IconComponent: icon as IconType, title: item.title, lines: item.lines, color: item.color };
+            const contactItems: ContactInfo[] = [];
+            let headOffice: Office = {
+                id: 'head-office',
+                type: 'Corporate Office',
+                addressLine1: '',
+                addressLine2: '',
+                addressLine3: '',
+                city: 'Head Office',
+                state: '',
+                pinCode: '',
+                phone1: '',
+                phone2: '',
+                email: ''
+            };
+
+            parsed.forEach((item: any) => {
+                if (item.type === 'phone') {
+                    headOffice.phone1 = item.lines[0] || '';
+                    headOffice.phone2 = item.lines[1] || '';
+                    return;
+                }
+                if (item.type === 'email') {
+                    headOffice.email = item.lines[0] || '';
+                    return;
+                }
+                if (item.type === 'address') {
+                    headOffice.addressLine1 = item.lines[0] || '';
+                    headOffice.addressLine2 = item.lines[1] || '';
+                    headOffice.addressLine3 = item.lines[2] || '';
+                    headOffice.city = item.title === 'Visit Us' ? 'Head Office' : item.title;
+                    return;
+                }
+
+                let icon = FaClock;
+                contactItems.push({ IconComponent: icon as IconType, title: item.title, lines: item.lines, color: item.color });
             });
-            setContactInfoItems(mapped);
+            setContactInfoItems(contactItems);
+
+            const storedOffices = localStorage.getItem('admin_offices');
+            const otherOffices = storedOffices ? JSON.parse(storedOffices) : [];
+            setOffices([headOffice, ...otherOffices]);
         }
+        // else: keep the defaultContactInfo already set in useState
 
         const storedInquiries = localStorage.getItem('admin_inquiry_types');
         if (storedInquiries) setInquiryTypes(JSON.parse(storedInquiries));
@@ -159,6 +276,7 @@ const Contact: React.FC = () => {
             });
             setSocialLinks(mapped);
         }
+        // else: keep the defaultSocialLinks already set in useState
     };
 
     React.useEffect(() => {
@@ -276,7 +394,7 @@ const Contact: React.FC = () => {
                                         <div className="contact-icon" style={{ color: item.color, background: `${item.color}18` }}>
                                             <Icon />
                                         </div>
-                                        <div>
+                                        <div className="contact-card-content">
                                             <div className="contact-card-title">{item.title}</div>
                                             {item.lines.map((l, j) => (
                                                 <div key={j} className="contact-card-line">{l}</div>
@@ -287,28 +405,67 @@ const Contact: React.FC = () => {
                             })}
                         </div>
 
-                        {/* Social */}
-                        <div className="contact-social">
-                            <div className="social-title">Follow Us On</div>
-                            <div className="social-links">
-                                {socialLinks.map((link, i) => {
-                                    const Icon = link.IconComponent;
-                                    return (
-                                        <a
-                                            key={i}
-                                            href={link.href}
-                                            className="social-link"
-                                            style={{ color: link.color, background: `${link.color}18`, border: `1px solid ${link.color}33` }}
-                                            aria-label={link.label}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            <Icon />
-                                        </a>
-                                    );
-                                })}
+                        {/* Unified Locations Section */}
+                        {offices.length > 0 && (
+                            <div className="additional-offices">
+                                <div className="social-title">Our Locations</div>
+                                <div className="offices-grid">
+                                    {offices.map((office) => (
+                                        <div key={office.id} className="office-card glass-card">
+                                            <div className={`office-type-badge ${office.type === 'Corporate Office' ? 'corporate' : 'branch'}`}>
+                                                {office.type}
+                                            </div>
+
+                                            <h4 className="office-city">{office.city}</h4>
+
+                                            <div className="office-address">
+                                                <FaMapMarkerAlt className="address-icon" />
+                                                <div className="address-text">
+                                                    <div>{office.addressLine1}</div>
+                                                    {office.addressLine2 && <div>{office.addressLine2}</div>}
+                                                    {office.addressLine3 && <div>{office.addressLine3}</div>}
+                                                    {office.city !== 'Head Office' && <div>{office.city}, {office.state} - {office.pinCode}</div>}
+                                                </div>
+                                            </div>
+
+                                            <div className="office-contact-actions">
+                                                {[office.phone1, office.phone2].filter(Boolean).map((phone, idx) => {
+                                                    const cleanNum = phone!.replace(/\D/g, '');
+                                                    return (
+                                                        <div key={idx} className="contact-action-item">
+                                                            <a
+                                                                href={`tel:${cleanNum}`}
+                                                                className="office-action-link phone"
+                                                                title="Call Now"
+                                                            >
+                                                                <FaPhone size={12} />
+                                                            </a>
+                                                            <a
+                                                                href={`https://wa.me/${cleanNum}`}
+                                                                className="office-action-link whatsapp"
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title="WhatsApp Us"
+                                                            >
+                                                                <FaWhatsapp size={14} />
+                                                            </a>
+                                                            <span className="phone-number-text">{phone}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                                {office.email && (
+                                                    <a href={`mailto:${office.email}`} className="office-email-link">
+                                                        <FaEnvelope className="email-icon" />
+                                                        <span className="email-text">{office.email}</span>
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
+
                     </motion.div>
 
                     {/* Right - Form */}

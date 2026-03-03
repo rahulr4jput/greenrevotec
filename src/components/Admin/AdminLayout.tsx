@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
+import { FaBars } from 'react-icons/fa';
 import Sidebar from './Sidebar';
 import './AdminLayout.css';
 
 const AdminLayout: React.FC = () => {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
     // Double-check authentication just in case
     const isAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true';
 
@@ -13,12 +16,17 @@ const AdminLayout: React.FC = () => {
 
     return (
         <div className="admin-layout">
-            <Sidebar />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <main className="admin-main-content">
                 <div className="admin-header">
-                    <h2>Admin Dashboard</h2>
+                    <div className="mobile-header-left">
+                        <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+                            <FaBars />
+                        </button>
+                        <h2>Admin Dashboard</h2>
+                    </div>
                     <div className="admin-user-profile">
-                        <span>Admin</span>
+                        <span className="admin-user-name">Admin</span>
                         <div className="avatar">A</div>
                     </div>
                 </div>

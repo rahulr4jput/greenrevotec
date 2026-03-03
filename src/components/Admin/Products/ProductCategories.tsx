@@ -30,9 +30,18 @@ const ProductCategories: React.FC = () => {
     const [linkedToId, setLinkedToId] = useState<string | null>(null);
     const [availableLanguages, setAvailableLanguages] = useState<Language[]>([]);
     const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+    const [multilangEnabled, setMultilangEnabled] = useState<boolean>(() => {
+        const v = localStorage.getItem('admin_multilang_enabled');
+        return v === null ? false : v === 'true';
+    });
 
     useEffect(() => {
         fetchData();
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'admin_multilang_enabled') setMultilangEnabled(e.newValue !== 'false');
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
     }, []);
 
     const fetchData = async () => {
@@ -192,23 +201,25 @@ const ProductCategories: React.FC = () => {
                         </h4>
                         <form onSubmit={handleAddCategory}>
                             {/* Language selection at the top */}
-                            <div className="category-form-group" style={{ background: '#f0f9ff', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd', marginBottom: '20px' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontWeight: 'bold', fontSize: '13px' }}>
-                                    <FaLanguage /> Entry Language
-                                </label>
-                                <select
-                                    className="category-form-input"
-                                    value={language}
-                                    onChange={(e) => handleLanguageChange(e.target.value)}
-                                    required
-                                    style={{ marginBottom: 0, marginTop: '6px', fontSize: '13px', padding: '8px' }}
-                                >
-                                    <option value="English">English</option>
-                                    {availableLanguages.map(lang => (
-                                        <option key={lang.id} value={lang.name}>{lang.name} ({lang.script})</option>
-                                    ))}
-                                </select>
-                            </div>
+                            {multilangEnabled && (
+                                <div className="category-form-group" style={{ background: '#f0f9ff', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd', marginBottom: '20px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontWeight: 'bold', fontSize: '13px' }}>
+                                        <FaLanguage /> Entry Language
+                                    </label>
+                                    <select
+                                        className="category-form-input"
+                                        value={language}
+                                        onChange={(e) => handleLanguageChange(e.target.value)}
+                                        required
+                                        style={{ marginBottom: 0, marginTop: '6px', fontSize: '13px', padding: '8px' }}
+                                    >
+                                        <option value="English">English</option>
+                                        {availableLanguages.map(lang => (
+                                            <option key={lang.id} value={lang.name}>{lang.name} ({lang.script})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
 
                             {/* Linked To English Entry - Only for non-English */}
                             {language !== 'English' && (

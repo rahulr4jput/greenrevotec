@@ -43,10 +43,10 @@ interface SocialLink {
 
 const defaultConfig: FooterConfig = {
     tagline: "Empowering India's farmers through innovation, science, and sustainable agriculture technology.",
-    phone: '+91 98765 43210',
+    phone: '+91 94548 80810',
     email: 'info@greenrevotec.com',
-    address: 'Pune, Maharashtra 411001',
-    copyrightText: '© {year} Green Revotec Private Limited. All rights reserved.',
+    address: '26, Bsnl Exchange Road Chhibramau, Kannauj, Uttar Pradesh- 209721',
+    copyrightText: '© {year} Green Revotec. All rights reserved.',
     certifications: ['ISO 9001:2015', 'ICAR Certified', 'NABARD Approved'],
     bottomLinks: [
         { label: 'Privacy Policy', href: '/privacy-policy' },
@@ -59,8 +59,8 @@ const defaultConfig: FooterConfig = {
             id: 'company', title: 'Company', isActive: true,
             links: [
                 { label: 'About Us', href: '#' }, { label: 'Our Team', href: '#' },
-                { label: 'Careers', href: '#' }, { label: 'Press & Media', href: '#' },
-                { label: 'Corporate Responsibility', href: '#' }, { label: 'Investor Relations', href: '#' },
+                { label: 'Careers', href: 'careers' }, { label: 'Press & Media', href: '#' },
+                { label: 'Corporate Responsibility', href: '#' },
             ],
         },
         {
@@ -76,11 +76,11 @@ const defaultConfig: FooterConfig = {
             links: [
                 { label: 'Crop Advisory', href: '#' }, { label: 'Soil Analysis', href: '#' },
                 { label: 'Drone Survey', href: '#' }, { label: 'Smart Irrigation', href: '#' },
-                { label: 'Farmer Training', href: '#' }, { label: 'Market Linkage', href: '#' },
+                { label: 'Farmer Training', href: '#' },
             ],
         },
         {
-            id: 'partner', title: 'Partner With Us', isActive: true,
+            id: 'partner', title: 'Partner With Us', isActive: false,
             links: [
                 { label: 'Distributor Program', href: '#' }, { label: 'Retailer Signup', href: '#' },
                 { label: 'FPO Partnership', href: '#' }, { label: 'Corporate Tie-Up', href: '#' },

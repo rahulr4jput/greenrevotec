@@ -83,6 +83,10 @@ const AllProducts: React.FC = () => {
     const [availableLanguages, setAvailableLanguages] = useState<Language[]>([]);
     const [status, setStatus] = useState('published');
     const [showPricing, setShowPricing] = useState(true);
+    const [multilangEnabled, setMultilangEnabled] = useState<boolean>(() => {
+        const v = localStorage.getItem('admin_multilang_enabled');
+        return v === null ? false : v === 'true';
+    });
 
     interface Crop {
         id: string;
@@ -105,6 +109,11 @@ const AllProducts: React.FC = () => {
 
     useEffect(() => {
         fetchData();
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'admin_multilang_enabled') setMultilangEnabled(e.newValue !== 'false');
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
     }, []);
 
     const fetchData = async () => {
@@ -455,43 +464,43 @@ const AllProducts: React.FC = () => {
             <ToastContainer position="top-right" autoClose={3000} />
 
             <div className="categories-container" style={{ maxWidth: '100%' }}>
-                <div className="categories-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px', marginBottom: '32px' }}>
-                    <div style={{ flexShrink: 0 }}>
+                <div className="categories-header filter-toolbar-header">
+                    <div className="filter-header-title">
                         <h3 style={{ fontSize: '1.5rem', color: '#111827', marginBottom: '8px' }}>Product Inventory</h3>
                         <p style={{ color: '#6b7280' }}>Manage products, prices, and stock status.</p>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: isSectionVisible ? '#ecfdf5' : '#fef2f2', border: `1px solid ${isSectionVisible ? '#10b981' : '#ef4444'}`, borderRadius: '8px', cursor: 'pointer' }} onClick={toggleSectionVisibility}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: isSectionVisible ? '#047857' : '#b91c1c' }}>{isSectionVisible ? 'VISIBLE' : 'HIDDEN'} ON HOME</span>
-                            <div style={{ width: '36px', height: '20px', background: isSectionVisible ? '#10b981' : '#ef4444', borderRadius: '10px', position: 'relative', transition: '0.3s' }}>
-                                <div style={{ width: '14px', height: '14px', background: 'white', borderRadius: '50%', position: 'absolute', top: '3px', left: isSectionVisible ? '19px' : '3px', transition: '0.3s' }}></div>
+                    <div className="filter-toolbar-actions">
+                        <div className="visibility-toggle" style={{ background: isSectionVisible ? '#ecfdf5' : '#fef2f2', border: `1px solid ${isSectionVisible ? '#10b981' : '#ef4444'}` }} onClick={toggleSectionVisibility}>
+                            <span style={{ color: isSectionVisible ? '#047857' : '#b91c1c' }}>{isSectionVisible ? 'VISIBLE' : 'HIDDEN'} ON HOME</span>
+                            <div className="toggle-switch" style={{ background: isSectionVisible ? '#10b981' : '#ef4444' }}>
+                                <div className="toggle-knob" style={{ left: isSectionVisible ? '19px' : '3px' }}></div>
                             </div>
                         </div>
                         {/* Compact Integrated Search */}
-                        <div style={{ position: 'relative', minWidth: '200px', flex: '1', maxWidth: '300px' }}>
-                            <FaSearch style={{ position: 'absolute', top: '12px', left: '12px', color: '#9ca3af' }} />
+                        <div className="filter-search-box">
+                            <FaSearch className="search-icon" />
                             <input
                                 type="text"
                                 placeholder="Search products..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                style={{ width: '100%', padding: '10px 10px 10px 36px', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '14px', outline: 'none' }}
+                                className="search-input"
                             />
                         </div>
 
                         {/* Dropdown Filters */}
-                        <select className="category-form-input" style={{ width: 'auto', marginBottom: 0, padding: '9px 12px', fontSize: '13px' }} value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+                        <select className="category-form-input filter-dropdown" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
                             <option value="All">All Categories</option>
                             {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                         </select>
 
-                        <select className="category-form-input" style={{ width: 'auto', marginBottom: 0, padding: '9px 12px', fontSize: '13px' }} value={filterCrop} onChange={(e) => setFilterCrop(e.target.value)}>
+                        <select className="category-form-input filter-dropdown" value={filterCrop} onChange={(e) => setFilterCrop(e.target.value)}>
                             <option value="All">All Crops</option>
                             {availableCrops.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                         </select>
 
-                        <select className="category-form-input" style={{ width: 'auto', marginBottom: 0, padding: '9px 12px', fontSize: '13px' }} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                        <select className="category-form-input filter-dropdown" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                             <option value="All">All Status</option>
                             <option value="Active">Active</option>
                             <option value="Inactive">Inactive</option>
@@ -499,7 +508,7 @@ const AllProducts: React.FC = () => {
                             <option value="Draft">Draft</option>
                         </select>
 
-                        <select className="category-form-input" style={{ width: 'auto', marginBottom: 0, padding: '9px 12px', fontSize: '13px' }} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                        <select className="category-form-input filter-dropdown" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                             <option value="Newest">Newest First</option>
                             <option value="Oldest">Oldest First</option>
                             <option value="Price: Low to High">Low-High</option>
@@ -507,8 +516,7 @@ const AllProducts: React.FC = () => {
                         </select>
 
                         <button
-                            className="btn-save"
-                            style={{ margin: 0, padding: '10px 20px', whiteSpace: 'nowrap' }}
+                            className="btn-save btn-add-product"
                             onClick={() => { resetForm(); setIsModalOpen(true); }}
                         >
                             <FaPlus /> Add New Product
@@ -539,17 +547,17 @@ const AllProducts: React.FC = () => {
                                 ) : (
                                     filteredProducts.map((p) => (
                                         <tr key={p.id}>
-                                            <td style={{ padding: '12px 24px', color: '#6b7280', fontSize: '13px', fontWeight: 'bold' }}>#{p.id}</td>
-                                            <td style={{ padding: '12px 24px', width: '80px' }}>
+                                            <td data-label="ID" style={{ padding: '12px 24px', color: '#6b7280', fontSize: '13px', fontWeight: 'bold' }}>#{p.id}</td>
+                                            <td data-label="Image" style={{ padding: '12px 24px', width: '80px' }}>
                                                 <img
                                                     src={p.images[0]}
                                                     alt={p.name}
                                                     style={{ width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e5e7eb' }}
                                                 />
                                             </td>
-                                            <td className="cat-name-cell">
+                                            <td data-label="Details" className="cat-name-cell">
                                                 <div style={{ fontWeight: '600' }}>{p.name}</div>
-                                                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                                     <span style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', color: '#374151' }}>{p.language || 'English'}</span>
                                                     {p.linkedToId && (
                                                         <span style={{ backgroundColor: '#ecfdf5', padding: '2px 6px', borderRadius: '4px', border: '1px solid #10b981', color: '#047857', fontWeight: 'bold', fontSize: '10px' }}>
@@ -559,7 +567,7 @@ const AllProducts: React.FC = () => {
                                                     <span>SKU: {p.sku || 'N/A'} {p.manufacturer ? `| Mfg: ${p.manufacturer}` : ''}</span>
                                                 </div>
                                             </td>
-                                            <td className="cat-desc-cell">
+                                            <td data-label="Category" className="cat-desc-cell">
                                                 <div style={{ fontWeight: '500' }}>{p.category}</div>
                                                 {p.applicableCrops && p.applicableCrops.length > 0 && (
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
@@ -571,7 +579,7 @@ const AllProducts: React.FC = () => {
                                                     </div>
                                                 )}
                                             </td>
-                                            <td>
+                                            <td data-label="Pricing">
                                                 {p.salePrice ? (
                                                     <div>
                                                         <span style={{ fontWeight: 'bold', color: '#059669' }}>₹{p.salePrice}</span>
@@ -579,17 +587,19 @@ const AllProducts: React.FC = () => {
                                                     </div>
                                                 ) : <span style={{ color: '#9ca3af' }}>N/A</span>}
                                             </td>
-                                            <td>
-                                                <span className="category-badge" style={{ backgroundColor: p.isActive !== false ? '#dcfce7' : '#fee2e2', color: p.isActive !== false ? '#166534' : '#991b1b' }}>
-                                                    {p.isActive !== false ? 'Active' : 'Inactive'}
-                                                </span>
-                                                {p.status === 'draft' && (
-                                                    <span className="category-badge" style={{ backgroundColor: '#f3f4f6', color: '#374151', marginLeft: '4px' }}>
-                                                        Draft
+                                            <td data-label="Status">
+                                                <div style={{ display: 'flex', gap: '4px' }}>
+                                                    <span className="category-badge" style={{ backgroundColor: p.isActive !== false ? '#dcfce7' : '#fee2e2', color: p.isActive !== false ? '#166534' : '#991b1b' }}>
+                                                        {p.isActive !== false ? 'Active' : 'Inactive'}
                                                     </span>
-                                                )}
+                                                    {p.status === 'draft' && (
+                                                        <span className="category-badge" style={{ backgroundColor: '#f3f4f6', color: '#374151' }}>
+                                                            Draft
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
-                                            <td style={{ display: 'flex', justifyContent: 'center' }}>
+                                            <td data-label="Actions" style={{ display: 'flex', justifyContent: 'center' }}>
                                                 <div className="action-buttons">
                                                     <button
                                                         className="btn-icon edit"
@@ -645,44 +655,42 @@ const AllProducts: React.FC = () => {
 
                             <form onSubmit={handleAddOrUpdateProduct}>
                                 {/* Language Selection at the top */}
-                                <div className="category-form-group" style={{ background: '#f0f9ff', padding: '16px', borderRadius: '12px', border: '1px solid #bae6fd', marginBottom: '24px' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontWeight: 'bold' }}>
-                                        <FaLanguage /> Selected Language for this Entry
-                                    </label>
-                                    <select
-                                        className="category-form-input"
-                                        value={language}
-                                        onChange={(e) => {
-                                            const newLang = e.target.value;
-                                            setLanguage(newLang);
-                                            setLinkedToId(null); // Reset link when language changes
-                                            // Auto-clear fields if they don't match the new script
-                                            if (newLang !== 'English') {
-                                                if (name && !validateScript(name, newLang)) setName('');
-                                                if (description && !validateScript(description, newLang)) setDescription('');
-
-                                                const someBulletsMismatch = bulletPoints.some(bp => bp.trim() && !validateScript(bp, newLang));
-                                                if (someBulletsMismatch) {
-                                                    setBulletPoints(['']);
+                                {multilangEnabled && (
+                                    <div className="category-form-group" style={{ background: '#f0f9ff', padding: '16px', borderRadius: '12px', border: '1px solid #bae6fd', marginBottom: '24px' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontWeight: 'bold' }}>
+                                            <FaLanguage /> Selected Language for this Entry
+                                        </label>
+                                        <select
+                                            className="category-form-input"
+                                            value={language}
+                                            onChange={(e) => {
+                                                const newLang = e.target.value;
+                                                setLanguage(newLang);
+                                                setLinkedToId(null);
+                                                if (newLang !== 'English') {
+                                                    if (name && !validateScript(name, newLang)) setName('');
+                                                    if (description && !validateScript(description, newLang)) setDescription('');
+                                                    const someBulletsMismatch = bulletPoints.some(bp => bp.trim() && !validateScript(bp, newLang));
+                                                    if (someBulletsMismatch) setBulletPoints(['']);
                                                 }
-                                            }
-                                        }}
-                                        required
-                                        style={{ marginBottom: 0, marginTop: '8px', border: '1px solid #7dd3fc', background: 'white' }}
-                                    >
-                                        <option value="English">English</option>
-                                        {availableLanguages.map(lang => (
-                                            <option key={lang.id} value={lang.name}>{lang.name} ({lang.script})</option>
-                                        ))}
-                                    </select>
-                                    <p style={{ fontSize: '11px', color: '#0ea5e9', marginTop: '6px' }}>
-                                        Please ensure all text fields match the selected language's script.
-                                    </p>
-                                </div>
+                                            }}
+                                            required
+                                            style={{ marginBottom: 0, marginTop: '8px', border: '1px solid #7dd3fc', background: 'white' }}
+                                        >
+                                            <option value="English">English</option>
+                                            {availableLanguages.map(lang => (
+                                                <option key={lang.id} value={lang.name}>{lang.name} ({lang.script})</option>
+                                            ))}
+                                        </select>
+                                        <p style={{ fontSize: '11px', color: '#0ea5e9', marginTop: '6px' }}>
+                                            Please ensure all text fields match the selected language's script.
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* Basic Info */}
                                 <h5 style={{ marginBottom: '16px', color: '#374151', fontSize: '1.1rem' }}>Basic Information</h5>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div className="responsive-form-grid-2">
                                     <div className="category-form-group">
                                         <label>Product Name *</label>
                                         <input type="text" className="category-form-input" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -747,7 +755,7 @@ const AllProducts: React.FC = () => {
 
                                 {/* Pricing & Inventory */}
                                 <h5 style={{ margin: '24px 0 16px', color: '#374151', fontSize: '1.1rem', borderTop: '1px solid #e5e7eb', paddingTop: '16px' }}>Pricing & Details</h5>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                                <div className="responsive-form-grid-3">
                                     <div className="category-form-group">
                                         <label>Sale Price (₹)</label>
                                         <input type="number" className="category-form-input" value={salePrice} onChange={(e) => setSalePrice(e.target.value === '' ? '' : Number(e.target.value))} />
@@ -791,8 +799,8 @@ const AllProducts: React.FC = () => {
                                                     boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                                 }}></div>
                                             </div>
-                                            <span style={{ fontSize: '13px', fontWeight: '600', color: showPricing ? '#166534' : '#4b5563' }}>
-                                                {showPricing ? 'Show Prices to Public' : 'Hide Prices from Public'}
+                                            <span style={{ fontSize: '14px', fontWeight: '500', color: showPricing ? '#15803d' : '#6b7280' }}>
+                                                {showPricing ? 'Price Visible' : 'Price Hidden'}
                                             </span>
                                         </div>
                                     </div>
@@ -895,7 +903,7 @@ const AllProducts: React.FC = () => {
                                     )}
                                 </div>
 
-                                <div style={{ display: 'flex', gap: '12px', marginTop: '32px', borderTop: '1px solid #e5e7eb', paddingTop: '24px' }}>
+                                <div className="admin-form-actions">
                                     <button
                                         type="button"
                                         className="admin-btn admin-btn-secondary"

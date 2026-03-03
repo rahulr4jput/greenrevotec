@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, scrollSpy, Events } from 'react-scroll';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaSun, FaMoon, FaChevronDown, FaHandshake, FaLeaf, FaTractor, FaFlask, FaRobot, FaUsers, FaChartLine, FaMicrochip } from 'react-icons/fa';
+import { FaBars, FaTimes, FaChevronDown, FaHandshake, FaLeaf, FaTractor, FaFlask, FaRobot, FaUsers, FaChartLine, FaMicrochip } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
 import './Navbar.css';
 
@@ -13,7 +13,6 @@ const AVAILABLE_ICONS: Record<string, IconType> = {
 const Navbar: React.FC = () => {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
-    const [isDarkTheme, setIsDarkTheme] = useState(true);
     const [visibility, setVisibility] = useState<Record<string, boolean>>({});
     const [logoConfig, setLogoConfig] = useState<{ url: string, show: boolean, siteName: string }>({ url: '/logo.png', show: true, siteName: 'GreenRevotec' });
     const [categories, setCategories] = useState<{ name: string }[]>([]);
@@ -139,29 +138,6 @@ const Navbar: React.FC = () => {
     // Helper to check visibility (default true)
     const isVisible = (key: string) => visibility[key] !== false;
 
-    // Initialize theme from localStorage
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            setIsDarkTheme(false);
-            document.documentElement.setAttribute('data-theme', 'light');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-        }
-    }, []);
-
-    // Toggle Theme Handler
-    const toggleTheme = () => {
-        setIsDarkTheme(!isDarkTheme);
-        if (isDarkTheme) {
-            document.documentElement.setAttribute('data-theme', 'light');
-            localStorage.setItem('theme', 'light');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'dark');
-        }
-    };
-
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 60);
         window.addEventListener('scroll', handleScroll);
@@ -178,9 +154,19 @@ const Navbar: React.FC = () => {
         };
     }, [location.pathname]);
 
+    // Lock body scroll when drawer is open
+    useEffect(() => {
+        if (menuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [menuOpen]);
+
     return (
         <motion.nav
-            className={`navbar ${scrolled ? 'scrolled' : ''}`}
+            className={`navbar ${scrolled ? 'scrolled' : ''} ${!isHomePage ? 'subpage' : ''}`}
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' as any }}
@@ -266,16 +252,8 @@ const Navbar: React.FC = () => {
                     ))}
                 </ul>
 
-                {/* Actions (Theme + CTA) */}
+                {/* Actions (CTA only) */}
                 <div className="navbar-actions">
-                    <button
-                        className="theme-toggle"
-                        onClick={toggleTheme}
-                        aria-label="Toggle Theme"
-                    >
-                        {isDarkTheme ? <FaSun /> : <FaMoon />}
-                    </button>
-
                     {isVisible('onboarding') && (
                         <div className="navbar-cta">
                             {isHomePage ? (
@@ -297,100 +275,123 @@ const Navbar: React.FC = () => {
                 </button>
             </div>
 
-            {/* Mobile Menu */}
+            {/* Mobile Drawer — overlay and panel in separate AnimatePresence wrappers */}
             <AnimatePresence>
                 {menuOpen && (
                     <motion.div
-                        className="mobile-menu"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
+                        key="drawer-overlay"
+                        className="mobile-drawer-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
+                        onClick={() => setMenuOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {menuOpen && (
+                    <motion.div
+                        key="drawer-panel"
+                        className="mobile-drawer"
+                        initial={{ x: '100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: '100%' }}
+                        transition={{ type: 'tween', duration: 0.32, ease: 'easeInOut' }}
                     >
-                        <ul>
-                            {navLinks.filter(link => isVisible(link.visibilityKey)).map((link) => (
-                                <li key={link.to} className="mobile-nav-item">
-                                    <div className="mobile-nav-header">
-                                        {link.path ? (
-                                            <RouterLink
-                                                to={link.path}
-                                                className={`mobile-nav-link ${(location.pathname === link.path) ? 'active' : ''}`}
-                                                onClick={() => !(link.subLinks && link.subLinks.length > 0) && setMenuOpen(false)}
-                                            >
-                                                {link.label}
-                                            </RouterLink>
-                                        ) : isHomePage ? (
-                                            <Link
-                                                to={link.to}
-                                                smooth
-                                                offset={-80}
-                                                className="mobile-nav-link"
-                                                onClick={() => !(link.subLinks && link.subLinks.length > 0) && setMenuOpen(false)}
-                                            >
-                                                {link.label}
-                                            </Link>
-                                        ) : (
-                                            <span className="mobile-nav-link" style={{ cursor: 'pointer' }} onClick={() => !(link.subLinks && link.subLinks.length > 0) && scrollToSection(link.to)}>
-                                                {link.label}
-                                            </span>
-                                        )}
-                                        {link.subLinks && link.subLinks.length > 0 && (
-                                            <button
-                                                className="mobile-submenu-toggle"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const target = e.currentTarget.parentElement?.nextElementSibling as HTMLElement;
-                                                    if (target) {
-                                                        const isExpanded = target.style.height === 'auto' || target.style.height === 'max-content';
-                                                        target.style.height = isExpanded ? '0' : 'max-content';
-                                                        target.style.opacity = isExpanded ? '0' : '1';
-                                                        e.currentTarget.style.transform = isExpanded ? 'rotate(0)' : 'rotate(180deg)';
-                                                    }
-                                                }}
-                                            >
-                                                <FaChevronDown />
-                                            </button>
-                                        )}
-                                    </div>
-                                    {link.subLinks && link.subLinks.length > 0 && (
-                                        <div className="mobile-submenu" style={{ height: '0', opacity: '0', overflow: 'hidden', transition: 'all 0.3s ease' }}>
-                                            {link.subLinks.map((sub: any, idx) => (
-                                                sub.isRouter ? (
-                                                    <RouterLink key={idx} to={sub.to} className="mobile-submenu-link" onClick={() => setMenuOpen(false)}>{sub.label}</RouterLink>
-                                                ) : isHomePage ? (
-                                                    <Link key={idx} to={sub.to} smooth offset={-80} className="mobile-submenu-link" onClick={() => setMenuOpen(false)}>{sub.label}</Link>
-                                                ) : (
-                                                    <span key={idx} className="mobile-submenu-link" style={{ cursor: 'pointer' }} onClick={() => scrollToSection(sub.to)}>{sub.label}</span>
-                                                )
-                                            ))}
-                                        </div>
-                                    )}
-                                </li>
-                            ))}
-                            <li>
-                                <div className="mobile-actions-row">
-                                    <button
-                                        className="theme-toggle mobile"
-                                        onClick={toggleTheme}
-                                        aria-label="Toggle Theme"
-                                    >
-                                        {isDarkTheme ? <FaSun /> : <FaMoon />}
-                                        <span style={{ marginLeft: '10px' }}>
-                                            {isDarkTheme ? 'Light Mode' : 'Dark Mode'}
-                                        </span>
-                                    </button>
-                                </div>
-                            </li>
-                            {isVisible('onboarding') && (
-                                <li>
-                                    {isHomePage ? (
-                                        <Link to="onboard" smooth offset={-80} className="btn btn-primary mobile-cta" onClick={() => setMenuOpen(false)}>Onboard With Us</Link>
+                        {/* Left-edge collapse tab — outside inner scroll area so it's not clipped */}
+                        <button
+                            className="mobile-drawer-collapse-tab"
+                            onClick={() => setMenuOpen(false)}
+                            aria-label="Close menu"
+                        >
+                            <FaChevronDown style={{ transform: 'rotate(-90deg)' }} />
+                        </button>
+
+                        {/* Inner scrollable content */}
+                        <div className="mobile-drawer-inner">
+                            <div className="mobile-drawer-header">
+                                <RouterLink to="/" className="navbar-logo" onClick={() => setMenuOpen(false)}>
+                                    {logoConfig.show ? (
+                                        <img src={logoConfig.url} alt={logoConfig.siteName} className="logo-img" style={{ height: 36 }} />
                                     ) : (
-                                        <span className="btn btn-primary mobile-cta" style={{ cursor: 'pointer' }} onClick={() => scrollToSection('onboard')}>Onboard With Us</span>
+                                        <span className="logo-text">{logoConfig.siteName}</span>
                                     )}
-                                </li>
-                            )}
-                        </ul>
+                                </RouterLink>
+                            </div>
+
+                            <ul className="mobile-drawer-links">
+                                {navLinks.filter(link => isVisible(link.visibilityKey)).map((link) => (
+                                    <li key={link.to} className="mobile-nav-item">
+                                        <div className="mobile-nav-header">
+                                            {link.path ? (
+                                                <RouterLink
+                                                    to={link.path}
+                                                    className={`mobile-nav-link ${(location.pathname === link.path) ? 'active' : ''}`}
+                                                    onClick={() => !(link.subLinks && link.subLinks.length > 0) && setMenuOpen(false)}
+                                                >
+                                                    {link.label}
+                                                </RouterLink>
+                                            ) : isHomePage ? (
+                                                <Link
+                                                    to={link.to}
+                                                    smooth
+                                                    offset={-80}
+                                                    className="mobile-nav-link"
+                                                    onClick={() => !(link.subLinks && link.subLinks.length > 0) && setMenuOpen(false)}
+                                                >
+                                                    {link.label}
+                                                </Link>
+                                            ) : (
+                                                <span className="mobile-nav-link" style={{ cursor: 'pointer' }} onClick={() => !(link.subLinks && link.subLinks.length > 0) && scrollToSection(link.to)}>
+                                                    {link.label}
+                                                </span>
+                                            )}
+                                            {link.subLinks && link.subLinks.length > 0 && (
+                                                <button
+                                                    className="mobile-submenu-toggle"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const target = e.currentTarget.parentElement?.nextElementSibling as HTMLElement;
+                                                        if (target) {
+                                                            const isExpanded = target.style.height === 'auto' || target.style.height === 'max-content';
+                                                            target.style.height = isExpanded ? '0' : 'max-content';
+                                                            target.style.opacity = isExpanded ? '0' : '1';
+                                                            e.currentTarget.style.transform = isExpanded ? 'rotate(0)' : 'rotate(180deg)';
+                                                        }
+                                                    }}
+                                                >
+                                                    <FaChevronDown />
+                                                </button>
+                                            )}
+                                        </div>
+                                        {link.subLinks && link.subLinks.length > 0 && (
+                                            <div className="mobile-submenu" style={{ height: '0', opacity: '0', overflow: 'hidden', transition: 'all 0.3s ease' }}>
+                                                {link.subLinks.map((sub: any, idx) => (
+                                                    sub.isRouter ? (
+                                                        <RouterLink key={idx} to={sub.to} className="mobile-submenu-link" onClick={() => setMenuOpen(false)}>{sub.label}</RouterLink>
+                                                    ) : isHomePage ? (
+                                                        <Link key={idx} to={sub.to} smooth offset={-80} className="mobile-submenu-link" onClick={() => setMenuOpen(false)}>{sub.label}</Link>
+                                                    ) : (
+                                                        <span key={idx} className="mobile-submenu-link" style={{ cursor: 'pointer' }} onClick={() => scrollToSection(sub.to)}>{sub.label}</span>
+                                                    )
+                                                ))}
+                                            </div>
+                                        )}
+                                    </li>
+                                ))}
+                                {isVisible('onboarding') && (
+                                    <li style={{ marginTop: '16px' }}>
+                                        {isHomePage ? (
+                                            <Link to="onboard" smooth offset={-80} className="btn btn-primary mobile-cta" onClick={() => setMenuOpen(false)}>Onboard With Us</Link>
+                                        ) : (
+                                            <span className="btn btn-primary mobile-cta" style={{ cursor: 'pointer' }} onClick={() => scrollToSection('onboard')}>Onboard With Us</span>
+                                        )}
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

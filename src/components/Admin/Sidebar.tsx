@@ -2,11 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
     FaCog, FaUsers, FaSignOutAlt, FaLeaf,
-    FaBoxOpen, FaHandshake, FaChevronDown, FaChevronUp
+    FaBoxOpen, FaHandshake, FaChevronDown, FaChevronUp, FaBriefcase, FaChevronLeft
 } from 'react-icons/fa';
 import './AdminLayout.css';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     const navigate = useNavigate();
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const [logoConfig, setLogoConfig] = useState<{ url: string, show: boolean, siteName: string }>({ url: '/logo.png', show: true, siteName: 'GreenRevotec' });
@@ -44,103 +49,139 @@ const Sidebar: React.FC = () => {
     };
 
     return (
-        <aside className="admin-sidebar">
-            <div className="sidebar-header" style={{ justifyContent: 'center' }}>
-                {logoConfig.show && logoConfig.url ? (
-                    <img src={logoConfig.url} alt="Logo" className="sidebar-logo-img" style={{ maxWidth: '200px', maxHeight: '50px', objectFit: 'contain' }} />
-                ) : (
-                    <FaLeaf className="sidebar-logo-icon" style={{ fontSize: '2rem', margin: 0 }} />
-                )}
-            </div>
+        <>
+            {/* Mobile Overlay */}
+            {isOpen && <div className="admin-sidebar-overlay" onClick={onClose}></div>}
 
-            <nav className="sidebar-nav">
-                <ul className="admin-nav-list">
-                    <li className="admin-nav-item">
-                        <NavLink
-                            to="/admin/leads"
-                            className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}
-                        >
-                            <FaUsers className="admin-nav-icon" />
-                            <span>Leads</span>
-                        </NavLink>
-                    </li>
+            <aside className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
+                <div className="sidebar-header" style={{ justifyContent: 'center', position: 'relative' }}>
+                    {logoConfig.show && logoConfig.url ? (
+                        <img src={logoConfig.url} alt="Logo" className="sidebar-logo-img" style={{ maxWidth: '200px', maxHeight: '50px', objectFit: 'contain' }} />
+                    ) : (
+                        <FaLeaf className="sidebar-logo-icon" style={{ fontSize: '2rem', margin: 0 }} />
+                    )}
 
-                    {/* Products Accordion */}
-                    <li className="admin-nav-item">
-                        <div
-                            className={`admin-nav-link accordion-toggle ${openMenu === 'products' ? 'open' : ''}`}
-                            onClick={() => toggleMenu('products')}
-                        >
-                            <div className="accordion-label">
-                                <FaBoxOpen className="admin-nav-icon" />
-                                <span>Products</span>
+                    {/* Mobile Close Button */}
+                    <button className="mobile-sidebar-close" onClick={onClose}>
+                        <FaChevronLeft />
+                    </button>
+                </div>
+
+                <nav className="sidebar-nav">
+                    <ul className="admin-nav-list">
+                        <li className="admin-nav-item">
+                            <NavLink
+                                to="/admin/leads"
+                                className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}
+                            >
+                                <FaUsers className="admin-nav-icon" />
+                                <span>Leads</span>
+                            </NavLink>
+                        </li>
+
+                        {/* Products Accordion */}
+                        <li className="admin-nav-item">
+                            <div
+                                className={`admin-nav-link accordion-toggle ${openMenu === 'products' ? 'open' : ''}`}
+                                onClick={() => toggleMenu('products')}
+                            >
+                                <div className="accordion-label">
+                                    <FaBoxOpen className="admin-nav-icon" />
+                                    <span>Products</span>
+                                </div>
+                                {openMenu === 'products' ? <FaChevronUp className="chevron-icon" /> : <FaChevronDown className="chevron-icon" />}
                             </div>
-                            {openMenu === 'products' ? <FaChevronUp className="chevron-icon" /> : <FaChevronDown className="chevron-icon" />}
-                        </div>
-                        <ul className={`admin-submenu-list ${openMenu === 'products' ? 'expanded' : ''}`}>
-                            <li>
-                                <NavLink to="/admin/products/all" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
-                                    All Products
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink to="/admin/products/categories" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
-                                    Add Product Categories
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink to="/admin/products/crops" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
-                                    Create Crop Name
-                                </NavLink>
-                            </li>
-                        </ul>
-                    </li>
+                            <ul className={`admin-submenu-list ${openMenu === 'products' ? 'expanded' : ''}`}>
+                                <li>
+                                    <NavLink to="/admin/products/all" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
+                                        All Products
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink to="/admin/products/categories" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
+                                        Add Product Categories
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink to="/admin/products/crops" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
+                                        Create Crop Name
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </li>
 
-                    {/* Services Accordion */}
-                    <li className="admin-nav-item">
-                        <div
-                            className={`admin-nav-link accordion-toggle ${openMenu === 'services' ? 'open' : ''}`}
-                            onClick={() => toggleMenu('services')}
-                        >
-                            <div className="accordion-label">
-                                <FaHandshake className="admin-nav-icon" />
-                                <span>Services</span>
+                        {/* Services Accordion */}
+                        <li className="admin-nav-item">
+                            <div
+                                className={`admin-nav-link accordion-toggle ${openMenu === 'services' ? 'open' : ''}`}
+                                onClick={() => toggleMenu('services')}
+                            >
+                                <div className="accordion-label">
+                                    <FaHandshake className="admin-nav-icon" />
+                                    <span>Services</span>
+                                </div>
+                                {openMenu === 'services' ? <FaChevronUp className="chevron-icon" /> : <FaChevronDown className="chevron-icon" />}
                             </div>
-                            {openMenu === 'services' ? <FaChevronUp className="chevron-icon" /> : <FaChevronDown className="chevron-icon" />}
-                        </div>
-                        <ul className={`admin-submenu-list ${openMenu === 'services' ? 'expanded' : ''}`}>
-                            <li>
-                                <NavLink to="/admin/services/all" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
-                                    All Services
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink to="/admin/services/categories" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
-                                    Add Service Categories
-                                </NavLink>
-                            </li>
-                        </ul>
-                    </li>
+                            <ul className={`admin-submenu-list ${openMenu === 'services' ? 'expanded' : ''}`}>
+                                <li>
+                                    <NavLink to="/admin/services/all" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
+                                        All Services
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink to="/admin/services/categories" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
+                                        Add Service Categories
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </li>
 
-                    <li className="admin-nav-item">
-                        <NavLink
-                            to="/admin/settings"
-                            className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}
-                        >
-                            <FaCog className="admin-nav-icon" />
-                            <span>Settings</span>
-                        </NavLink>
-                    </li>
-                </ul>
-            </nav>
+                        {/* Careers Accordion */}
+                        <li className="admin-nav-item">
+                            <div
+                                className={`admin-nav-link accordion-toggle ${openMenu === 'careers' ? 'open' : ''}`}
+                                onClick={() => toggleMenu('careers')}
+                            >
+                                <div className="accordion-label">
+                                    <FaBriefcase className="admin-nav-icon" />
+                                    <span>Careers</span>
+                                </div>
+                                {openMenu === 'careers' ? <FaChevronUp className="chevron-icon" /> : <FaChevronDown className="chevron-icon" />}
+                            </div>
+                            <ul className={`admin-submenu-list ${openMenu === 'careers' ? 'expanded' : ''}`}>
+                                <li>
+                                    <NavLink to="/admin/careers/management" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
+                                        Manage Job Roles
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink to="/admin/careers/leads" className={({ isActive }) => isActive ? 'admin-submenu-link active' : 'admin-submenu-link'}>
+                                        Job Applications
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </li>
 
-            <div className="sidebar-footer">
-                <button onClick={handleLogout} className="logout-btn">
-                    <FaSignOutAlt className="admin-nav-icon" />
-                    <span>Logout</span>
-                </button>
-            </div>
-        </aside>
+                        <li className="admin-nav-item">
+                            <NavLink
+                                to="/admin/settings"
+                                className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}
+                            >
+                                <FaCog className="admin-nav-icon" />
+                                <span>Settings</span>
+                            </NavLink>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div className="sidebar-footer">
+                    <button onClick={handleLogout} className="logout-btn">
+                        <FaSignOutAlt className="admin-nav-icon" />
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 };
 

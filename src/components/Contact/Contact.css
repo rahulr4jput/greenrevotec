@@ -100,6 +100,21 @@
 .contact-form-wrap {
     padding: 40px;
     border: 1px solid rgba(var(--color-text-rgb), 0.15);
+    transition: var(--transition-slow);
+}
+
+.contact-form-wrap:hover {
+    transform: translateY(-6px);
+    border-color: rgba(26, 140, 78, 0.4);
+    box-shadow: var(--shadow-card), var(--shadow-glow-green);
+}
+
+[data-theme="light"] .contact-form-wrap:hover {
+    border-color: rgba(26, 140, 78, 0.35);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        0 1px 0 rgba(255, 255, 255, 0.5) inset,
+        0 0 32px rgba(26, 140, 78, 0.12);
 }
 
 .form-header-box {
@@ -447,4 +462,295 @@
 
 [data-theme="light"] .form-success p {
     color: #64748b;
+}
+
+/* Compact Info Cards */
+.contact-info-cards {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+    gap: 15px !important;
+    margin-bottom: 30px !important;
+}
+
+.contact-info-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    transition: var(--transition-slow);
+}
+
+.contact-info-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(26, 140, 78, 0.4);
+    box-shadow: var(--shadow-card), var(--shadow-glow-green);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .contact-info-card:hover {
+    border-color: rgba(26, 140, 78, 0.35);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.06),
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 0 24px rgba(26, 140, 78, 0.1);
+    background: #ffffff;
+}
+
+.contact-card-title {
+    font-size: 0.8rem;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.contact-card-line {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-white);
+}
+
+/* Symmetrical Locations Grid */
+.additional-offices {
+    margin-top: 30px;
+}
+
+.offices-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.office-card {
+    padding: 24px;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition-slow);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.office-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(26, 140, 78, 0.4);
+    box-shadow: var(--shadow-card), var(--shadow-glow-green);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.office-type-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.office-type-badge.corporate {
+    background: rgba(37, 99, 235, 0.1);
+    color: #60a5fa;
+}
+
+.office-type-badge.branch {
+    background: rgba(22, 163, 74, 0.1);
+    color: #4ade80;
+}
+
+.office-city {
+    margin: 0 0 10px;
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    font-family: var(--font-primary);
+}
+
+.office-address {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.5;
+}
+
+.address-icon {
+    color: var(--color-primary);
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.office-contact-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.contact-action-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition-base);
+}
+
+.contact-action-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.office-action-link {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: var(--transition-base);
+}
+
+.office-action-link.phone {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-white);
+}
+
+.office-action-link.phone:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+.office-action-link.whatsapp {
+    background: rgba(37, 211, 102, 0.1);
+    color: #25D366;
+}
+
+.office-action-link.whatsapp:hover {
+    background: #25D366;
+    color: white;
+}
+
+.phone-number-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.office-email-link {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition-base);
+}
+
+.office-email-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.email-icon {
+    color: var(--color-primary);
+    font-size: 0.9rem;
+}
+
+.email-text {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .contact-info-card {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .contact-card-title {
+    color: #64748b;
+}
+
+[data-theme="light"] .contact-card-line {
+    color: #1e293b;
+}
+
+[data-theme="light"] .office-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .office-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .office-address {
+    color: #475569;
+}
+
+[data-theme="light"] .contact-action-item {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .contact-action-item:hover {
+    background: #e2e8f0;
+}
+
+[data-theme="light"] .office-action-link.phone {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+[data-theme="light"] .office-action-link.whatsapp {
+    background: rgba(37, 211, 102, 0.15);
+}
+
+[data-theme="light"] .phone-number-text {
+    color: #1e293b;
+}
+
+[data-theme="light"] .office-email-link {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .email-text {
+    color: #475569;
+}
+
+[data-theme="light"] .office-type-badge.corporate {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+[data-theme="light"] .office-type-badge.branch {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+
+
+/* Responsive */
+@media (max-width: 1000px) {
+    .offices-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .contact-info-cards {
+        grid-template-columns: 1fr !important;
+    }
 }

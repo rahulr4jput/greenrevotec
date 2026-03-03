@@ -182,14 +182,14 @@ button {
 .section-label {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-family: var(--font-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 3px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
   text-transform: uppercase;
   color: var(--color-accent);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .section-label::before {
@@ -219,25 +219,58 @@ h6 {
 }
 
 .section-title {
-  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-size: clamp(2.2rem, 3.5vw, 3.6rem);
   font-weight: 800;
   font-family: var(--font-primary);
-  line-height: 1.15;
-  margin-bottom: 20px;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
 }
 
 .section-title span {
-  background: linear-gradient(135deg, var(--color-primary-light), var(--color-blue));
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, #34d399 40%, var(--color-blue) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .section-subtitle {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: var(--color-gray-light);
-  max-width: 580px;
-  line-height: 1.8;
+  max-width: 640px;
+  line-height: 1.85;
+  font-weight: 400;
+}
+
+/* ── Section Header Layout ── */
+.section-header {
+  margin-bottom: 56px;
+}
+
+.section-header.centered {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.section-header.centered .section-label {
+  justify-content: center;
+}
+
+.section-header.centered .section-title {
+  text-align: center;
+}
+
+.section-header.centered .section-subtitle {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .section-subtitle {
+  color: #4b5563;
 }
 
 /* ==========================================
@@ -787,7 +820,7 @@ h6 {
   }
 
   .section-title {
-    font-size: 2rem;
+    font-size: 2.4rem;
   }
 }
 

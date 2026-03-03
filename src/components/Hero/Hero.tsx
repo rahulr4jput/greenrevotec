@@ -46,13 +46,21 @@ const defaultStats: StatItem[] = [
 type SlideNavigateTo = 'page-products' | 'page-services' | 'section-products' | 'section-services';
 
 interface Slide {
-    id: number;
+    id: number | string;
     title: string;
     highlight: string;
     subtitle: string;
+    tagline?: string;
+    taglineHighlight?: string;
     type: 'video' | 'image';
     src: string;
     navigateTo?: SlideNavigateTo;
+    linkedProductId?: string;
+    linkedServiceId?: string;
+    showSubtitle?: boolean;
+    mobileSrc?: string;
+    mobileFocus?: string;
+    mobileZoom?: string;
 }
 
 const slides: Slide[] = [
@@ -117,11 +125,43 @@ const Hero: React.FC = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
 
     useEffect(() => {
-        const loadHeroConfig = () => {
-            const consolidated = localStorage.getItem('admin_hero_config');
-            if (consolidated) {
-                const data = JSON.parse(consolidated);
+        const loadHeroConfig = async () => {
+            // Fetch section visibility from API (source of truth)
+            let sectionVis: Record<string, boolean> | null = null;
+            try {
+                const svRes = await fetch('/api/settings/admin_section_visibility');
+                if (svRes.ok) {
+                    const svData = await svRes.json();
+                    if (svData && typeof svData === 'object') {
+                        sectionVis = svData;
+                        localStorage.setItem('admin_section_visibility', JSON.stringify(svData));
+                    }
+                }
+            } catch { }
+            if (!sectionVis) {
+                const raw = localStorage.getItem('admin_section_visibility');
+                sectionVis = raw ? JSON.parse(raw) : null;
+            }
+            const trustedByVisible = sectionVis ? sectionVis['trusted-by'] !== false : true;
 
+            // Fetch hero config from API (source of truth)
+            let data: any = null;
+            try {
+                const hcRes = await fetch('/api/settings/admin_hero_config');
+                if (hcRes.ok) {
+                    const hcData = await hcRes.json();
+                    if (hcData) {
+                        data = hcData;
+                        localStorage.setItem('admin_hero_config', JSON.stringify(hcData));
+                    }
+                }
+            } catch { }
+            if (!data) {
+                const raw = localStorage.getItem('admin_hero_config');
+                data = raw ? JSON.parse(raw) : null;
+            }
+
+            if (data) {
                 // Slides
                 if (data.slides) {
                     const activeSlides = data.slides.filter((s: any) => s.isActive).map((s: any) => ({
@@ -129,17 +169,25 @@ const Hero: React.FC = () => {
                         title: s.title,
                         highlight: s.highlight,
                         subtitle: s.subtitle,
+                        tagline: s.tagline,
+                        taglineHighlight: s.taglineHighlight,
                         type: s.type,
                         src: s.src,
-                        navigateTo: s.navigateTo
+                        navigateTo: s.navigateTo,
+                        linkedProductId: s.linkedProductId,
+                        linkedServiceId: s.linkedServiceId,
+                        showSubtitle: s.showSubtitle,
+                        mobileSrc: s.mobileSrc,
+                        mobileFocus: s.mobileFocus,
+                        mobileZoom: s.mobileZoom,
                     }));
                     if (activeSlides.length > 0) setHeroSlides(activeSlides);
                     else setHeroSlides(slides);
                 }
 
-                // Brands
+                // Brands – respect BOTH the hero config toggle AND the Section Visibility panel
                 if (data.brands) setHeroBrands(data.brands);
-                setIsBrandsVisible(data.brandsVisible !== false);
+                setIsBrandsVisible(data.brandsVisible !== false && trustedByVisible);
 
                 // Stats
                 if (data.stats) setHeroStats(data.stats.filter((s: any) => s.isActive));
@@ -172,7 +220,20 @@ const Hero: React.FC = () => {
         return () => clearInterval(timer);
     }, [heroSlides]);
 
-    if (heroSlides.length === 0) return null;
+    if (heroSlides.length === 0) {
+        return (
+            <section
+                className="hero"
+                style={{
+                    minHeight: '100vh',
+                    background: 'var(--color-bg, #0a0f1a)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            />
+        );
+    }
 
     const slide = heroSlides[currentSlide];
 
@@ -200,10 +261,26 @@ const Hero: React.FC = () => {
                                 <source src={slide.src} type="video/mp4" />
                             </video>
                         ) : (
-                            <div
-                                className="hero-image"
-                                style={{ backgroundImage: `url(${slide.src})` }}
-                            />
+                            <>
+                                <div
+                                    className={`hero-image ${slide.mobileSrc ? 'desktop-only-bg' : ''}`}
+                                    style={{
+                                        backgroundImage: `url("${slide.src}")`,
+                                        '--mobile-bg-pos': slide.mobileFocus || 'center',
+                                        '--mobile-bg-size': slide.mobileZoom || 'cover'
+                                    } as React.CSSProperties}
+                                />
+                                {slide.mobileSrc && (
+                                    <div
+                                        className="hero-image mobile-only-bg"
+                                        style={{
+                                            backgroundImage: `url("${slide.mobileSrc}")`,
+                                            '--mobile-bg-pos': slide.mobileFocus || 'center',
+                                            '--mobile-bg-size': slide.mobileZoom || 'cover'
+                                        } as React.CSSProperties}
+                                    />
+                                )}
+                            </>
                         )}
                     </motion.div>
                 </AnimatePresence>
@@ -243,22 +320,29 @@ const Hero: React.FC = () => {
                     >
                         {slide.title} <span className="gradient-text">{slide.highlight}</span>
                         <br />
-                        <span style={{ fontSize: '0.6em', opacity: 0.9 }}>Through Smart <span className="gradient-text-gold">GreenRevotec</span></span>
+                        <span style={{ fontSize: '0.6em', opacity: 0.9 }}>
+                            {(slide.tagline || slide.taglineHighlight)
+                                ? <>{slide.tagline || ''}{slide.tagline && slide.taglineHighlight ? ' ' : ''}<span className="gradient-text-gold">{slide.taglineHighlight || ''}</span></>
+                                : <>Through Smart <span className="gradient-text-gold">GreenRevotec</span></>
+                            }
+                        </span>
                     </motion.h1>
                 </AnimatePresence>
 
                 {/* Dynamic Subtitle */}
                 <AnimatePresence mode="wait">
-                    <motion.p
-                        key={`subtitle-${slide.id}`}
-                        className="hero-subtitle"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
-                    >
-                        {slide.subtitle}
-                    </motion.p>
+                    {slide.showSubtitle !== false && (
+                        <motion.p
+                            key={`subtitle-${slide.id}`}
+                            className="hero-subtitle"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                        >
+                            {slide.subtitle}
+                        </motion.p>
+                    )}
                 </AnimatePresence>
 
                 {/* CTA Buttons */}
@@ -271,12 +355,17 @@ const Hero: React.FC = () => {
                     {/* Dynamic Explore Button */}
                     {(() => {
                         const navTo = slide.navigateTo || 'section-products';
-                        const isPageNav = navTo === 'page-products' || navTo === 'page-services';
                         const handleExplore = () => {
                             if (navTo === 'page-products') {
-                                navigateWithTransition('/products');
+                                const url = slide.linkedProductId
+                                    ? `/products?highlight=${slide.linkedProductId}`
+                                    : '/products';
+                                navigateWithTransition(url);
                             } else if (navTo === 'page-services') {
-                                navigateWithTransition('/services');
+                                const url = slide.linkedServiceId
+                                    ? `/services/${slide.linkedServiceId}`
+                                    : '/services';
+                                navigateWithTransition(url);
                             } else if (navTo === 'section-services') {
                                 scroller.scrollTo('services', { smooth: true, offset: -80, duration: 600 });
                             } else {
@@ -293,11 +382,6 @@ const Hero: React.FC = () => {
                             </button>
                         );
                     })()}
-                    <Link to="contact" smooth offset={-80}>
-                        <button className="btn btn-secondary btn-lg">
-                            <FaPlay className="play-icon" /> Get Started
-                        </button>
-                    </Link>
                 </motion.div>
 
                 {/* Trust badges */}
@@ -316,8 +400,10 @@ const Hero: React.FC = () => {
                         </div>
                     </motion.div>
                 )}
+            </div>
 
-                {/* Slider Nav */}
+            {/* Slider Nav - pinned to absolute bottom of section */}
+            {heroSlides.length > 1 && (
                 <div className="hero-slider-nav">
                     {heroSlides.map((_, index) => (
                         <button
@@ -328,8 +414,7 @@ const Hero: React.FC = () => {
                         />
                     ))}
                 </div>
-            </div>
-
+            )}
             {/* Stats Bar */}
             {isStatsVisible && heroStats.length > 0 && (
                 <motion.div

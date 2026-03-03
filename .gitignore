@@ -1,7 +1,10 @@
 # dependencies
 /node_modules
-/.pnp
-.pnp.js
+build/
+prisma/dev.db
+prisma/dev.db-journal
+uploads/
+.env
 
 # testing
 /coverage

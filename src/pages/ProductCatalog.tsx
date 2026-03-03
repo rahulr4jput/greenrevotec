@@ -100,7 +100,18 @@ const ProductCatalog: React.FC = () => {
 
             if (prodRes.ok) {
                 const prods = await prodRes.json();
-                setProducts(prods.filter((p: any) => p.status !== 'draft'));
+                const activeProds = prods.filter((p: any) => p.status !== 'draft');
+                setProducts(activeProds);
+
+                // Auto-open product modal when ?highlight=<id> is in URL
+                const highlightId = new URLSearchParams(location.search).get('highlight');
+                if (highlightId) {
+                    const target = activeProds.find((p: any) => String(p.id) === highlightId);
+                    if (target) {
+                        // Small delay so the UI has rendered
+                        setTimeout(() => openModal(target), 400);
+                    }
+                }
             }
             if (catRes.ok) {
                 const catData = await catRes.json();

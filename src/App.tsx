@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 import HomePage from './pages/HomePage';
 import ProductCatalog from './pages/ProductCatalog';
 import ServicesPage from './pages/ServicesPage';
+import CareersPage from './pages/CareersPage';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import TermsOfService from './pages/legal/TermsOfService';
 import CookiePolicy from './pages/legal/CookiePolicy';
@@ -24,6 +25,7 @@ import ProductCategories from './components/Admin/Products/ProductCategories';
 import AllProducts from './components/Admin/Products/AllProducts';
 import CropManagement from './components/Admin/Products/CropManagement';
 import AllServices from './components/Admin/Services/AllServices';
+import ServiceCategories from './components/Admin/Services/ServiceCategories';
 import AllProjects from './components/Admin/Projects/AllProjects';
 import BrandsManagement from './components/Admin/Brands/BrandsManagement';
 import GalleryManagement from './components/Admin/Gallery/GalleryManagement';
@@ -39,6 +41,8 @@ import FooterManagement from './components/Admin/Footer/FooterManagement';
 import SiteIdentityManagement from './components/Admin/SiteIdentity/SiteIdentityManagement';
 import SectionVisibility from './components/Admin/SectionVisibility/SectionVisibility';
 import LanguageManagement from './components/Admin/Settings/LanguageManagement';
+import CareersManagement from './components/Admin/Careers/CareersManagement';
+import JobLeads from './components/Admin/Careers/JobLeads';
 
 function App() {
   // Logic to handle site-wide identity (Favicon, Title, Description)
@@ -162,6 +166,7 @@ function App() {
             <Route path="products" element={<ProductCatalog />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="services/:id" element={<ServicesPage />} />
+            <Route path="careers" element={<CareersPage />} />
             {/* Legal Pages */}
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
             <Route path="terms-of-service" element={<TermsOfService />} />
@@ -182,6 +187,7 @@ function App() {
               <Route path="products/all" element={<AllProducts />} />
               <Route path="products/crops" element={<CropManagement />} />
               <Route path="services/all" element={<AllServices />} />
+              <Route path="services/categories" element={<ServiceCategories />} />
               <Route path="projects/all" element={<AllProjects />} />
               <Route path="trusted-by" element={<BrandsManagement />} />
               <Route path="gallery" element={<GalleryManagement />} />
@@ -196,6 +202,8 @@ function App() {
               <Route path="visibility" element={<SectionVisibility />} />
               <Route path="site-identity" element={<SiteIdentityManagement />} />
               <Route path="settings/languages" element={<LanguageManagement />} />
+              <Route path="careers/management" element={<CareersManagement />} />
+              <Route path="careers/leads" element={<JobLeads />} />
             </Route>
           </Route>
 

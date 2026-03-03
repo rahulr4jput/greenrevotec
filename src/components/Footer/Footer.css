@@ -11,10 +11,23 @@
 }
 
 .footer-grid {
-    display: grid;
-    grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr;
+    display: flex;
+    align-items: flex-start;
     gap: 40px;
 }
+
+.footer-brand {
+    flex: 0 0 300px;
+    min-width: 0;
+}
+
+/* All nav columns share remaining width equally */
+.footer-nav-column {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+
 
 /* Brand Column */
 .footer-logo {
@@ -249,21 +262,28 @@
 /* Responsive */
 @media (max-width: 1200px) {
     .footer-grid {
-        grid-template-columns: 1fr 1fr 1fr;
+        flex-wrap: wrap;
     }
 
     .footer-brand {
-        grid-column: span 3;
+        flex: 0 0 100%;
+    }
+
+    .footer-nav-column {
+        flex: 1 1 calc(25% - 30px);
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 900px) {
+    .footer-nav-column {
+        flex: 1 1 calc(33.333% - 28px);
     }
 }
 
 @media (max-width: 768px) {
-    .footer-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .footer-brand {
-        grid-column: span 2;
+    .footer-nav-column {
+        flex: 1 1 calc(50% - 20px);
     }
 
     .footer-bottom-inner {
@@ -273,12 +293,8 @@
 }
 
 @media (max-width: 480px) {
-    .footer-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .footer-brand {
-        grid-column: span 1;
+    .footer-nav-column {
+        flex: 1 1 100%;
     }
 }
 

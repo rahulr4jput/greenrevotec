@@ -17,44 +17,62 @@
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
+/* Subpage modifications: always give it a background because there's no dark hero behind it */
+.navbar.subpage {
+    background: rgba(10, 15, 26, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* Bottom border */
+}
+
+/* Light mode for subpage and scrolled navbars */
+[data-theme="light"] .navbar.subpage,
 [data-theme="light"] .navbar.scrolled {
-    background: rgba(255, 255, 255, 0.95);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    /* Visible bottom border to differentiate page */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
-/* Light mode: non-scrolled navbar also needs visible text */
-[data-theme="light"] .navbar {
-    background: rgba(255, 255, 255, 0.95);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="light"] .navbar .nav-link {
-    color: #374151;
-}
-
-[data-theme="light"] .navbar .nav-link:hover {
-    color: #111827;
-    background: rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="light"] .navbar .mobile-toggle {
-    color: #374151;
-    border-color: rgba(0, 0, 0, 0.1);
-}
-
+/* Higher contrast text and bold weight per user request */
+[data-theme="light"] .navbar.subpage .nav-link,
 [data-theme="light"] .navbar.scrolled .nav-link {
-    color: var(--color-gray);
+    color: #111827;
+    font-weight: 600;
+    /* Bolder text */
 }
 
+[data-theme="light"] .navbar.subpage .nav-link:hover,
 [data-theme="light"] .navbar.scrolled .nav-link:hover {
-    color: var(--color-dark-2);
+    color: var(--color-primary);
     background: rgba(0, 0, 0, 0.05);
 }
 
+/* Keep nav text white over the dark hero in light mode (transparent/default state on homepage) */
+[data-theme="light"] .navbar:not(.scrolled):not(.subpage) .nav-link {
+    color: rgba(255, 255, 255, 0.88);
+    font-weight: 500;
+}
+
+[data-theme="light"] .navbar:not(.scrolled):not(.subpage) .nav-link:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .navbar.subpage .mobile-toggle,
 [data-theme="light"] .navbar.scrolled .mobile-toggle {
-    color: var(--color-white);
-    border-color: rgba(0, 0, 0, 0.1);
+    color: #111827;
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Keep hamburger icon white over the hero in light mode */
+[data-theme="light"] .navbar:not(.scrolled):not(.subpage) .mobile-toggle {
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .navbar-inner {
@@ -75,11 +93,24 @@
 
 .logo-img {
     height: 34px;
-    /* Decreased by 30% from 48px */
     width: auto;
     object-fit: contain;
-    transition: var(--transition-base);
-    animation: logo-glow 4s ease-in-out infinite;
+    transition: filter 0.3s ease, opacity 0.3s ease;
+    /* Base visibility boost over dark hero */
+    filter:
+        drop-shadow(0 0 6px rgba(255, 255, 255, 0.45)) drop-shadow(0 2px 12px rgba(0, 0, 0, 0.5)) brightness(1.15);
+}
+
+/* When navbar scrolls onto a lighter background, remove the glow */
+.navbar.scrolled .logo-img,
+.navbar.subpage .logo-img {
+    filter: brightness(1) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
+}
+
+/* Light mode scrolled/subpage — logo on white bg, no glow needed */
+[data-theme="light"] .navbar.scrolled .logo-img,
+[data-theme="light"] .navbar.subpage .logo-img {
+    filter: brightness(0.95) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.08));
 }
 
 .logo-text {
@@ -95,7 +126,8 @@
     padding: 4px 0;
 }
 
-[data-theme="light"] .logo-text {
+[data-theme="light"] .navbar.subpage .logo-text,
+[data-theme="light"] .navbar.scrolled .logo-text {
     color: var(--color-primary);
     -webkit-text-fill-color: var(--color-primary);
 }
@@ -219,9 +251,9 @@
 }
 
 [data-theme="light"] .submenu-inner {
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 /* Mega Menu Specifics */
@@ -348,17 +380,13 @@
     transform: scale(1.05);
 }
 
-[data-theme="light"] .theme-toggle {
-    color: #9ba3af;
-    /* Moon color */
-    border-color: rgba(0, 0, 0, 0.15);
-}
-
+[data-theme="light"] .navbar.subpage .theme-toggle,
 [data-theme="light"] .navbar.scrolled .theme-toggle {
-    color: #9ba3af;
-    border-color: rgba(0, 0, 0, 0.1);
+    color: #4b5563;
+    border-color: rgba(0, 0, 0, 0.2);
 }
 
+[data-theme="light"] .navbar.subpage .theme-toggle:hover,
 [data-theme="light"] .navbar.scrolled .theme-toggle:hover {
     background: rgba(0, 0, 0, 0.05);
 }
@@ -389,25 +417,107 @@
     border-color: rgba(26, 140, 78, 0.4);
 }
 
-/* Mobile Menu */
-.mobile-menu {
+/* Mobile Drawer */
+.mobile-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 1100;
+}
+
+.mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(320px, 88vw);
+    height: 100dvh;
     background: rgba(10, 15, 26, 0.97);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    overflow: hidden;
-}
-
-[data-theme="light"] .mobile-menu {
-    background: rgba(255, 255, 255, 0.98);
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.mobile-menu ul {
-    padding: 20px 24px 24px;
+    backdrop-filter: blur(24px);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 1200;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    box-shadow: -12px 0 48px rgba(0, 0, 0, 0.4);
+    /* overflow must be visible so the collapse tab can stick out to the left */
+    overflow: visible;
+}
+
+/* Inner scrollable container */
+.mobile-drawer-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+[data-theme="light"] .mobile-drawer {
+    background: rgba(255, 255, 255, 0.96);
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: -12px 0 48px rgba(0, 0, 0, 0.12);
+}
+
+/* Drawer Header */
+.mobile-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    flex-shrink: 0;
+}
+
+[data-theme="light"] .mobile-drawer-header {
+    border-bottom-color: rgba(0, 0, 0, 0.07);
+}
+
+/* Left-edge collapse tab */
+.mobile-drawer-collapse-tab {
+    position: absolute;
+    top: 50%;
+    left: -44px;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 15, 26, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(12px);
+}
+
+.mobile-drawer-collapse-tab:hover {
+    background: rgba(26, 140, 78, 0.25);
+    color: var(--color-primary-light);
+    border-color: rgba(26, 140, 78, 0.4);
+}
+
+[data-theme="light"] .mobile-drawer-collapse-tab {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #374151;
+}
+
+[data-theme="light"] .mobile-drawer-collapse-tab:hover {
+    background: rgba(26, 140, 78, 0.1);
+    color: var(--color-primary);
+}
+
+/* Drawer links list */
+.mobile-drawer-links {
+    padding: 16px 16px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
 }
 
 .mobile-nav-link {

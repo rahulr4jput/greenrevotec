@@ -14,10 +14,23 @@ interface ContactInfo {
     color: string;
 }
 
+interface Office {
+    id: string;
+    type: 'Branch Office' | 'Corporate Office';
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    state: string;
+    pinCode: string;
+    phone1: string;
+    phone2: string;
+    email: string;
+}
+
 const DEFAULT_CONTACT: ContactInfo[] = [
-    { id: '1', type: 'phone', title: 'Call Us', lines: ['+91 98765 43210', '+91 80001 12345'], color: '#25b565' },
+    { id: '1', type: 'phone', title: 'Call Us', lines: ['+91 94548 80810'], color: '#25b565' },
     { id: '2', type: 'email', title: 'Email Us', lines: ['info@greenrevotec.com', 'support@greenrevotec.com'], color: '#f5a623' },
-    { id: '3', type: 'address', title: 'Head Office', lines: ['Green Revotec HQ, GreenRevotec Park', 'Pune, Maharashtra 411001'], color: '#38bdf8' },
+    { id: '3', type: 'address', title: 'Head Office', lines: ['Green Revotec HQ', '26, Bsnl Exchange Road', 'Chhibramau, Kannauj, Uttar Pradesh- 209721'], color: '#38bdf8' },
     { id: '4', type: 'hours', title: 'Business Hours', lines: ['Mon – Sat: 9:00 AM – 7:00 PM', 'Sun: 10:00 AM – 3:00 PM'], color: '#e879f9' },
 ];
 
@@ -35,15 +48,48 @@ const DEFAULT_INQUIRY_TYPES: InquiryType[] = [
     { id: '5', label: 'Corporate Partnership', value: 'corporate' },
 ];
 
+const DEFAULT_OFFICES: Office[] = [
+    {
+        id: '1772358184949',
+        type: 'Branch Office',
+        addressLine1: 'A-81, Ekta Enclave',
+        addressLine2: 'Paschim Vihar',
+        city: 'New Delhi',
+        state: 'Delhi',
+        pinCode: '110087',
+        phone1: '+918849226427',
+        phone2: '',
+        email: 'info@greenrevotec.com',
+    },
+];
+
 const ContactManagement: React.FC = () => {
     const [info, setInfo] = useState<ContactInfo[]>([]);
     const [inquiryTypes, setInquiryTypes] = useState<InquiryType[]>([]);
+    const [offices, setOffices] = useState<Office[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isOfficeModalOpen, setIsOfficeModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<ContactInfo | null>(null);
+    const [editingOffice, setEditingOffice] = useState<Office | null>(null);
 
-    // Form state
+    // Form state for basic info
     const [lines, setLines] = useState<string[]>(['']);
+
+    // Form state for inquiry types
     const [newInquiryLabel, setNewInquiryLabel] = useState('');
+
+    // Form state for offices
+    const [officeForm, setOfficeForm] = useState<Partial<Office>>({
+        type: 'Branch Office',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        pinCode: '',
+        phone1: '',
+        phone2: '',
+        email: ''
+    });
 
     const fetchContactConfig = async () => {
         try {
@@ -53,8 +99,10 @@ const ContactManagement: React.FC = () => {
                 if (data) {
                     setInfo(data.info || DEFAULT_CONTACT);
                     setInquiryTypes(data.inquiryTypes || DEFAULT_INQUIRY_TYPES);
+                    setOffices(data.offices || []);
                     localStorage.setItem('admin_contact_info', JSON.stringify(data.info || DEFAULT_CONTACT));
                     localStorage.setItem('admin_inquiry_types', JSON.stringify(data.inquiryTypes || DEFAULT_INQUIRY_TYPES));
+                    localStorage.setItem('admin_offices', JSON.stringify(data.offices || []));
                     return;
                 }
             }
@@ -70,16 +118,21 @@ const ContactManagement: React.FC = () => {
         const storedInquiries = localStorage.getItem('admin_inquiry_types');
         if (storedInquiries) setInquiryTypes(JSON.parse(storedInquiries));
         else setInquiryTypes(DEFAULT_INQUIRY_TYPES);
+
+        const storedOffices = localStorage.getItem('admin_offices');
+        if (storedOffices) setOffices(JSON.parse(storedOffices));
+        else setOffices(DEFAULT_OFFICES);
     };
 
     useEffect(() => {
         fetchContactConfig();
     }, []);
 
-    const saveContactConfig = async (updatedData: { info?: ContactInfo[], inquiryTypes?: InquiryType[] }) => {
+    const saveContactConfig = async (updatedData: { info?: ContactInfo[], inquiryTypes?: InquiryType[], offices?: Office[] }) => {
         const fullConfig = {
             info: updatedData.info || info,
-            inquiryTypes: updatedData.inquiryTypes || inquiryTypes
+            inquiryTypes: updatedData.inquiryTypes || inquiryTypes,
+            offices: updatedData.offices || offices
         };
 
         try {
@@ -92,8 +145,10 @@ const ContactManagement: React.FC = () => {
             if (response.ok) {
                 if (updatedData.info) setInfo(updatedData.info);
                 if (updatedData.inquiryTypes) setInquiryTypes(updatedData.inquiryTypes);
+                if (updatedData.offices) setOffices(updatedData.offices);
                 localStorage.setItem('admin_contact_info', JSON.stringify(fullConfig.info));
                 localStorage.setItem('admin_inquiry_types', JSON.stringify(fullConfig.inquiryTypes));
+                localStorage.setItem('admin_offices', JSON.stringify(fullConfig.offices));
                 window.dispatchEvent(new Event('storage'));
             }
         } catch (error) {
@@ -138,6 +193,57 @@ const ContactManagement: React.FC = () => {
     const removeLine = (idx: number) => {
         if (lines.length > 1) {
             setLines(lines.filter((_, i) => i !== idx));
+        }
+    };
+
+    const handleOfficeEdit = (office: Office) => {
+        setEditingOffice(office);
+        setOfficeForm(office);
+        setIsOfficeModalOpen(true);
+    };
+
+    const handleAddOffice = () => {
+        setEditingOffice(null);
+        setOfficeForm({
+            type: 'Branch Office',
+            addressLine1: '',
+            addressLine2: '',
+            city: '',
+            state: '',
+            pinCode: '',
+            phone1: '',
+            phone2: '',
+            email: ''
+        });
+        setIsOfficeModalOpen(true);
+    };
+
+    const handleSaveOffice = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const newOffice = {
+            ...officeForm,
+            id: editingOffice ? editingOffice.id : Date.now().toString()
+        } as Office;
+
+        let updatedOffices;
+        if (editingOffice) {
+            updatedOffices = offices.map(o => o.id === editingOffice.id ? newOffice : o);
+        } else {
+            updatedOffices = [...offices, newOffice];
+        }
+
+        await saveContactConfig({ offices: updatedOffices });
+        toast.success(`Office ${editingOffice ? 'updated' : 'added'} successfully!`);
+        setIsOfficeModalOpen(false);
+        setEditingOffice(null);
+    };
+
+    const handleDeleteOffice = async (id: string) => {
+        if (window.confirm("Are you sure you want to delete this office?")) {
+            const updated = offices.filter(o => o.id !== id);
+            await saveContactConfig({ offices: updated });
+            toast.info("Office removed.");
         }
     };
 
@@ -234,6 +340,71 @@ const ContactManagement: React.FC = () => {
                         </button>
                     </div>
                 ))}
+            </div>
+
+            <div className="admin-page-header" style={{ marginTop: '50px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h1 className="admin-page-title">Offices Management</h1>
+                    <p className="admin-page-subtitle">Add or remove branch and corporate offices.</p>
+                </div>
+                <button className="btn-save" onClick={handleAddOffice}>
+                    <FaPlus /> Add Office
+                </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                {offices.map((office) => (
+                    <div key={office.id} className="category-form-card" style={{ margin: 0, padding: '24px', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+                            <div style={{
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                background: office.type === 'Corporate Office' ? '#eff6ff' : '#f0fdf4',
+                                color: office.type === 'Corporate Office' ? '#2563eb' : '#16a34a',
+                                fontSize: '0.75rem',
+                                fontWeight: 600
+                            }}>
+                                {office.type}
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button className="btn-icon" onClick={() => handleOfficeEdit(office)}><FaPencilAlt /></button>
+                                <button className="btn-icon delete" onClick={() => handleDeleteOffice(office.id)}><FaTrash /></button>
+                            </div>
+                        </div>
+
+                        <div style={{ flexGrow: 1 }}>
+                            <h3 style={{ margin: '0 0 10px', fontSize: '1.1rem', color: '#111827' }}>{office.city}</h3>
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', color: '#4b5563', fontSize: '0.9rem' }}>
+                                <FaMapMarkerAlt style={{ marginTop: '3px', flexShrink: 0 }} />
+                                <div>
+                                    <div>{office.addressLine1}</div>
+                                    {office.addressLine2 && <div>{office.addressLine2}</div>}
+                                    <div>{office.city}, {office.state} - {office.pinCode}</div>
+                                </div>
+                            </div>
+                            {(office.phone1 || office.phone2) && (
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', color: '#4b5563', fontSize: '0.9rem' }}>
+                                    <FaPhone style={{ marginTop: '3px', flexShrink: 0 }} />
+                                    <div>
+                                        {office.phone1 && <div>{office.phone1}</div>}
+                                        {office.phone2 && <div>{office.phone2}</div>}
+                                    </div>
+                                </div>
+                            )}
+                            {office.email && (
+                                <div style={{ display: 'flex', gap: '8px', color: '#4b5563', fontSize: '0.9rem' }}>
+                                    <FaEnvelope style={{ marginTop: '3px', flexShrink: 0 }} />
+                                    <div style={{ wordBreak: 'break-all' }}>{office.email}</div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+                {offices.length === 0 && (
+                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '50px', background: '#f9fafb', borderRadius: '12px', border: '2px dashed #e5e7eb' }}>
+                        <p style={{ color: '#6b7280' }}>No offices added yet. Click "Add Office" to get started.</p>
+                    </div>
+                )}
             </div>
 
             <div className="admin-page-header" style={{ marginTop: '50px', marginBottom: '32px' }}>
@@ -335,6 +506,133 @@ const ContactManagement: React.FC = () => {
                                 <div className="modal-actions" style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                                     <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>Cancel</button>
                                     <button type="submit" className="btn-save"><FaSave /> Save Changes</button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {isOfficeModalOpen && (
+                    <div className="modal-overlay">
+                        <motion.div className="modal-content category-form-card" initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} style={{ maxWidth: '700px', width: '90%' }}>
+                            <div className="modal-header">
+                                <h3>{editingOffice ? 'Edit Office' : 'Add New Office'}</h3>
+                                <button className="btn-close" onClick={() => setIsOfficeModalOpen(false)}><FaTimes /></button>
+                            </div>
+                            <form onSubmit={handleSaveOffice} style={{ padding: '24px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                    <div className="category-form-group" style={{ gridColumn: '1 / -1' }}>
+                                        <label>Office Type</label>
+                                        <select
+                                            className="category-form-input"
+                                            value={officeForm.type}
+                                            onChange={(e) => setOfficeForm({ ...officeForm, type: e.target.value as any })}
+                                            required
+                                        >
+                                            <option value="Branch Office">Branch Office</option>
+                                            <option value="Corporate Office">Corporate Office</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="category-form-group">
+                                        <label>Address Line 1</label>
+                                        <input
+                                            type="text"
+                                            className="category-form-input"
+                                            value={officeForm.addressLine1}
+                                            onChange={(e) => setOfficeForm({ ...officeForm, addressLine1: e.target.value })}
+                                            placeholder="Building, Street..."
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="category-form-group">
+                                        <label>Address Line 2 (Optional)</label>
+                                        <input
+                                            type="text"
+                                            className="category-form-input"
+                                            value={officeForm.addressLine2}
+                                            onChange={(e) => setOfficeForm({ ...officeForm, addressLine2: e.target.value })}
+                                            placeholder="Area, Landmark..."
+                                        />
+                                    </div>
+
+                                    <div className="category-form-group">
+                                        <label>City</label>
+                                        <input
+                                            type="text"
+                                            className="category-form-input"
+                                            value={officeForm.city}
+                                            onChange={(e) => setOfficeForm({ ...officeForm, city: e.target.value })}
+                                            placeholder="City"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="category-form-group">
+                                        <label>State</label>
+                                        <input
+                                            type="text"
+                                            className="category-form-input"
+                                            value={officeForm.state}
+                                            onChange={(e) => setOfficeForm({ ...officeForm, state: e.target.value })}
+                                            placeholder="State"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="category-form-group">
+                                        <label>Pin Code</label>
+                                        <input
+                                            type="text"
+                                            className="category-form-input"
+                                            value={officeForm.pinCode}
+                                            onChange={(e) => setOfficeForm({ ...officeForm, pinCode: e.target.value })}
+                                            placeholder="XXXXXX"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="category-form-group">
+                                        <label>Email Address</label>
+                                        <input
+                                            type="email"
+                                            className="category-form-input"
+                                            value={officeForm.email}
+                                            onChange={(e) => setOfficeForm({ ...officeForm, email: e.target.value })}
+                                            placeholder="office@greenrevotec.com"
+                                        />
+                                    </div>
+
+                                    <div className="category-form-group">
+                                        <label>Primary Phone</label>
+                                        <input
+                                            type="tel"
+                                            className="category-form-input"
+                                            value={officeForm.phone1}
+                                            onChange={(e) => setOfficeForm({ ...officeForm, phone1: e.target.value })}
+                                            placeholder="+91 XXXXX XXXXX"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="category-form-group">
+                                        <label>Secondary Phone (Optional)</label>
+                                        <input
+                                            type="tel"
+                                            className="category-form-input"
+                                            value={officeForm.phone2}
+                                            onChange={(e) => setOfficeForm({ ...officeForm, phone2: e.target.value })}
+                                            placeholder="+91 XXXXX XXXXX"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="modal-actions" style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                    <button type="button" className="btn-cancel" onClick={() => setIsOfficeModalOpen(false)}>Cancel</button>
+                                    <button type="submit" className="btn-save"><FaSave /> Save Office</button>
                                 </div>
                             </form>
                         </motion.div>
