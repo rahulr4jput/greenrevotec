@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaFilter, FaSearch, FaLeaf, FaStar, FaArrowRight, FaTimes, FaChevronLeft, FaChevronRight, FaHeadset, FaUser, FaPhone, FaEnvelope, FaPen, FaRocket } from 'react-icons/fa';
 import { FaWhatsapp } from 'react-icons/fa';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { usePageReady } from '../components/PageTransition/PageTransition';
 import BottomNav from '../components/BottomNav/BottomNav';
+import SEO from '../components/SEO/SEO';
 import './ProductCatalog.css';
 
 
@@ -215,6 +216,11 @@ const ProductCatalog: React.FC = () => {
 
     return (
         <div className="catalog-page">
+            <SEO
+                title="Product Catalog | GreenRevotec"
+                description="Browse our complete catalog of innovative agricultural solutions, fertilizers, crop protection, and equipment."
+                keywords="agriculture products, fertilizers, pesticides, farm equipment catalog"
+            />
             <div className="container catalog-container">
                 {/* Mobile Controls Row */}
                 <div className="catalog-mobile-controls">

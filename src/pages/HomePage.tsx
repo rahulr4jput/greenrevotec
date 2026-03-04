@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import SEO from '../components/SEO/SEO';
 import Hero from '../components/Hero/Hero';
 import WhyChooseUs from '../components/WhyChooseUs/WhyChooseUs';
 import Products from '../components/Products/Products';
@@ -112,6 +113,11 @@ const HomePage: React.FC = () => {
 
     return (
         <main>
+            <SEO
+                title="Home | GreenRevotec"
+                description="Welcome to GreenRevotec. Discover top-quality agricultural products including organic fertilizers, effective pesticides, and cutting edge drone services."
+                keywords="agriculture company, organic farming, pesticide supplies"
+            />
             <Hero />
             <WhyChooseUs />
             {isVisible('products') && <Products />}

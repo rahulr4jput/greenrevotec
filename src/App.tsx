@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import { PageTransitionProvider } from './components/PageTransition/PageTransition';
+import SEO from './components/SEO/SEO';
 
 // Public Components
 import PublicLayout from './components/PublicLayout';
@@ -159,6 +160,11 @@ function App() {
     <Router>
       <PageTransitionProvider>
         <ScrollToTop />
+        <SEO
+          title="GreenRevotec - Sustainable Agriculture & Innovation"
+          description="GreenRevotec offers modern agricultural products, services, and sustainable innovations for a greener tomorrow. Explore our fertilizers, pesticides, and smart farming solutions."
+          keywords="agriculture, farming, sustainable, greenrevotec, fertilizers, pesticides"
+        />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<PublicLayout />}>
