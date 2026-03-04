@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaLeaf, FaTint, FaSun, FaSeedling, FaFlask, FaTractor, FaMicroscope, FaSatellite, FaTree } from 'react-icons/fa';
+import { FaLeaf, FaTint, FaSun, FaSeedling, FaFlask, FaTractor, FaMicroscope, FaSatellite, FaTree, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
 import './Gallery.css';
 
@@ -26,6 +26,16 @@ const defaultGalleryItems: GalleryItem[] = [
     { id: 9, title: 'Nursery & Seedling Center', category: 'Horticulture', color: '#84cc16', IconComponent: FaSeedling as IconType, size: 'medium' },
 ];
 
+const mapItems = (raw: any[]): GalleryItem[] =>
+    raw.filter((item: any) => item.isActive).map((item: any, idx: number) => ({
+        id: item.id,
+        title: item.caption || 'GreenRevotec Operations',
+        category: item.category,
+        image: item.image,
+        size: idx % 4 === 0 ? 'large' : (idx % 3 === 0 ? 'medium' : 'small'),
+        color: '#25b565'
+    }));
+
 const Gallery: React.FC = () => {
     const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
     const [header, setHeader] = useState({
@@ -34,63 +44,55 @@ const Gallery: React.FC = () => {
         subtitle: "A glimpse into our field operations, products, and the farmers we serve across India."
     });
     const [currentPage, setCurrentPage] = useState(0);
-    const [totalActiveItems, setTotalActiveItems] = useState(0);
 
-    const ITEMS_PER_PAGE = 10;
+    // Show max 8 images per page — triggers carousel when > 8 images
+    const ITEMS_PER_PAGE = 8;
 
     useEffect(() => {
-        const loadGallery = () => {
+        const loadGallery = async () => {
+            // 1. Fetch from API first (source of truth on AWS)
+            try {
+                const res = await fetch('/api/settings/admin_gallery_config');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data) {
+                        if (data.header) setHeader(data.header);
+                        if (data.items) {
+                            const active = mapItems(data.items);
+                            if (active.length > 0) {
+                                setGalleryItems(active);
+                                setCurrentPage(0);
+                                localStorage.setItem('admin_gallery_config', JSON.stringify(data));
+                                return;
+                            }
+                        }
+                    }
+                }
+            } catch { }
+
+            // 2. localStorage fallback (consolidated)
             const consolidated = localStorage.getItem('admin_gallery_config');
             if (consolidated) {
                 const data = JSON.parse(consolidated);
-
-                // Header
                 if (data.header) setHeader(data.header);
-
-                // Items
                 if (data.items) {
-                    const activeItems = data.items.filter((item: any) => item.isActive).map((item: any, idx: number) => ({
-                        id: item.id,
-                        title: item.caption || 'GreenRevotec Operations',
-                        category: item.category,
-                        image: item.image,
-                        size: idx % 4 === 0 ? 'large' : (idx % 3 === 0 ? 'medium' : 'small'),
-                        color: '#25b565'
-                    }));
-
-                    if (activeItems.length > 0) {
-                        setGalleryItems(activeItems);
-                        setTotalActiveItems(activeItems.length);
-                    } else {
-                        setGalleryItems(defaultGalleryItems);
-                        setTotalActiveItems(defaultGalleryItems.length);
-                    }
+                    const active = mapItems(data.items);
+                    if (active.length > 0) { setGalleryItems(active); setCurrentPage(0); return; }
                 }
-            } else {
-                // Fallback to legacy
-                const stored = localStorage.getItem('admin_gallery');
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    const activeItems = parsed.filter((item: any) => item.isActive).map((item: any, idx: number) => ({
-                        id: item.id,
-                        title: item.caption || 'GreenRevotec Operations',
-                        category: item.category,
-                        image: item.image,
-                        size: idx % 4 === 0 ? 'large' : (idx % 3 === 0 ? 'medium' : 'small'),
-                        color: '#25b565'
-                    }));
-                    if (activeItems.length > 0) {
-                        setGalleryItems(activeItems);
-                        setTotalActiveItems(activeItems.length);
-                    }
-                } else {
-                    setGalleryItems(defaultGalleryItems);
-                    setTotalActiveItems(defaultGalleryItems.length);
-                }
-
-                const storedHeader = localStorage.getItem('admin_gallery_header');
-                if (storedHeader) setHeader(JSON.parse(storedHeader));
             }
+
+            // 3. Legacy localStorage
+            const stored = localStorage.getItem('admin_gallery');
+            if (stored) {
+                const active = mapItems(JSON.parse(stored));
+                if (active.length > 0) { setGalleryItems(active); setCurrentPage(0); return; }
+            }
+            const storedHeader = localStorage.getItem('admin_gallery_header');
+            if (storedHeader) setHeader(JSON.parse(storedHeader));
+
+            // 4. Default items
+            setGalleryItems(defaultGalleryItems);
+            setCurrentPage(0);
         };
 
         loadGallery();
@@ -98,19 +100,14 @@ const Gallery: React.FC = () => {
         return () => window.removeEventListener('storage', loadGallery);
     }, []);
 
-    const totalPages = Math.ceil(totalActiveItems / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(galleryItems.length / ITEMS_PER_PAGE);
     const paginatedItems = galleryItems.slice(
         currentPage * ITEMS_PER_PAGE,
         (currentPage + 1) * ITEMS_PER_PAGE
     );
 
-    const handleNext = () => {
-        setCurrentPage((prev) => (prev + 1) % totalPages);
-    };
-
-    const handlePrev = () => {
-        setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
-    };
+    const handleNext = () => setCurrentPage((prev) => (prev + 1) % totalPages);
+    const handlePrev = () => setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
 
     return (
         <section className="section gallery" id="gallery">
@@ -124,19 +121,17 @@ const Gallery: React.FC = () => {
                 >
                     <div className="section-label">{header.label}</div>
                     <h2 className="section-title" dangerouslySetInnerHTML={{ __html: header.title }}></h2>
-                    <p className="section-subtitle">
-                        {header.subtitle}
-                    </p>
+                    <p className="section-subtitle">{header.subtitle}</p>
                 </motion.div>
 
                 <div className="gallery-carousel-wrapper">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentPage}
-                            initial={{ opacity: 0, x: 20 }}
+                            initial={{ opacity: 0, x: 30 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.5 }}
+                            exit={{ opacity: 0, x: -30 }}
+                            transition={{ duration: 0.4, ease: 'easeInOut' }}
                             className="gallery-masonry"
                         >
                             {paginatedItems.map((item, i) => {
@@ -145,10 +140,10 @@ const Gallery: React.FC = () => {
                                     <motion.div
                                         key={item.id}
                                         className={`gallery-item ${item.size}`}
-                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        initial={{ opacity: 0, scale: 0.92 }}
                                         whileInView={{ opacity: 1, scale: 1 }}
                                         viewport={{ once: true }}
-                                        transition={{ delay: i * 0.06, duration: 0.5 }}
+                                        transition={{ delay: i * 0.05, duration: 0.4 }}
                                         whileHover={{ scale: 1.02 }}
                                     >
                                         {item.image ? (
@@ -183,24 +178,43 @@ const Gallery: React.FC = () => {
                         </motion.div>
                     </AnimatePresence>
 
+                    {/* Carousel controls — only shown when multiple pages */}
                     {totalPages > 1 && (
                         <div className="gallery-controls">
-                            <button className="gallery-control-btn prev" onClick={handlePrev} aria-label="Previous images">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+                            <button
+                                className="gallery-control-btn"
+                                onClick={handlePrev}
+                                aria-label="Previous page"
+                            >
+                                <FaChevronLeft />
                             </button>
+
                             <div className="gallery-dots">
                                 {Array.from({ length: totalPages }).map((_, i) => (
                                     <button
                                         key={i}
                                         className={`gallery-dot ${currentPage === i ? 'active' : ''}`}
                                         onClick={() => setCurrentPage(i)}
+                                        aria-label={`Go to page ${i + 1}`}
                                     />
                                 ))}
                             </div>
-                            <button className="gallery-control-btn next" onClick={handleNext} aria-label="Next images">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+
+                            <button
+                                className="gallery-control-btn"
+                                onClick={handleNext}
+                                aria-label="Next page"
+                            >
+                                <FaChevronRight />
                             </button>
                         </div>
+                    )}
+
+                    {/* Page counter */}
+                    {totalPages > 1 && (
+                        <p className="gallery-page-indicator">
+                            Page {currentPage + 1} of {totalPages}
+                        </p>
                     )}
                 </div>
             </div>
