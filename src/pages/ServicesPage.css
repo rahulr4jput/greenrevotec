@@ -86,6 +86,46 @@
     color: var(--color-gray-light);
 }
 
+.service-category-filter {
+    margin-bottom: 20px;
+}
+
+.category-select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(var(--color-text-rgb), 0.05);
+    border: 1px solid var(--color-border);
+    color: var(--color-gray-light);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    transition: var(--transition-base);
+}
+
+.category-select:focus,
+.category-select:hover {
+    border-color: var(--color-primary);
+    background: rgba(var(--color-text-rgb), 0.08);
+}
+
+.category-select option {
+    background: var(--color-dark-2);
+    color: var(--color-white);
+}
+
+[data-theme="light"] .category-select option {
+    background: white;
+    color: #1e293b;
+}
+
 .services-list {
     display: flex;
     flex-direction: column;

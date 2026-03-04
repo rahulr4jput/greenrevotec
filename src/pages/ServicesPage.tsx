@@ -24,6 +24,7 @@ interface Service {
     bulletPoints: string[];
     additionalImages: string[];
     contentBlocks?: { image: string; title: string; description: string }[];
+    serviceCategory?: string;
 }
 
 const AVAILABLE_ICONS: Record<string, IconType> = {
@@ -38,6 +39,7 @@ const ServicesPage: React.FC = () => {
     const [currentImageIdx, setCurrentImageIdx] = useState(0);
     const [loading, setLoading] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
     // Form State
     const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
@@ -124,6 +126,9 @@ const ServicesPage: React.FC = () => {
     if (loading) return <div className="services-page-loading">Loading Services...</div>;
     const allSelectedImages = selectedService ? [selectedService.image, ...selectedService.additionalImages] : [];
 
+    const uniqueCategories = ['All', ...Array.from(new Set(services.map(s => s.serviceCategory || 'Other')))];
+    const filteredServices = services.filter(s => selectedCategory === 'All' || (s.serviceCategory || 'Other') === selectedCategory);
+
     return (
         <div className="services-page">
             <div className="services-container container">
@@ -134,8 +139,26 @@ const ServicesPage: React.FC = () => {
                         <h3>Our Services</h3>
                         <button className="close-sidebar" onClick={() => setIsSidebarOpen(false)}>×</button>
                     </div>
+
+                    <div className="service-category-filter">
+                        <select
+                            className="category-select"
+                            value={selectedCategory}
+                            onChange={(e) => {
+                                setSelectedCategory(e.target.value);
+                                // Optional: auto-select first service in category
+                                const firstInCategory = services.find(s => e.target.value === 'All' || (s.serviceCategory || 'Other') === e.target.value);
+                                if (firstInCategory) handleServiceSelect(firstInCategory);
+                            }}
+                        >
+                            {uniqueCategories.map(cat => (
+                                <option key={cat} value={cat}>{cat === 'All' ? 'All Categories' : cat}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="services-list">
-                        {services.map((service) => {
+                        {filteredServices.map((service) => {
                             const Icon = AVAILABLE_ICONS[service.iconName] || FaHandshake;
                             return (
                                 <motion.div
