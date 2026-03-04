@@ -16,12 +16,18 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Catch JSON Parsing Errors to Debug AWS malformed payload
 app.use((err, req, res, next) => {
-    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-        console.error('JSON Parsing Error:', err.message);
-        console.error('Raw Body Snippet:', err.body.substring(0, 100)); // Log first 100 chars and position around error
-        return res.status(400).json({ error: 'Invalid JSON payload received', details: err.message });
+    if (err instanceof SyntaxError && err.status >= 400 && err.status < 500 && err.message.indexOf('JSON') !== -1) {
+        console.error('------- CRITICAL JSON PARSING ERROR -------');
+        console.error('Error Message:', err.message);
+        if (err.body) {
+            console.error('Raw Body First 500 Chars:', String(err.body).substring(0, 500));
+        } else {
+            console.error('Raw Body missing on error object');
+        }
+        res.status(400).json({ error: 'JSON parsing failed', details: err.message });
+    } else {
+        next(err);
     }
-    next(err);
 });
 
 // Serve static files from the React app
