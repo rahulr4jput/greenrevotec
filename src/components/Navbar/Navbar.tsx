@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
     const groupedServices = groupByCategory(services);
 
     // Dynamic Navigation Links
-    const navLinks = [
+    const navLinks: any[] = [
         { label: 'Home', to: 'hero', visibilityKey: 'hero' },
         {
             label: 'Products',
@@ -228,7 +228,7 @@ const Navbar: React.FC = () => {
                                                             {category}
                                                         </RouterLink>
                                                         <ul className="mega-item-list">
-                                                            {items.slice(0, 6).map((item: any) => (
+                                                            {((items as any[]) || []).slice(0, 6).map((item: any) => (
                                                                 <li key={item.id}>
                                                                     <RouterLink
                                                                         to={link.label === 'Products' ? `/product/${item.id}` : `/services/${item.id}`}
