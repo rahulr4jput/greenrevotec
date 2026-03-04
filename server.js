@@ -172,7 +172,8 @@ app.post('/api/settings/:key', async (req, res) => {
         });
         res.json(setting);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to save setting' });
+        console.error('Error saving setting:', error);
+        res.status(500).json({ error: 'Failed to save setting', details: error.message });
     }
 });
 
