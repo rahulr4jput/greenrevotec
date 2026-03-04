@@ -45,8 +45,8 @@ const Gallery: React.FC = () => {
     });
     const [currentPage, setCurrentPage] = useState(0);
 
-    // Show max 8 images per page — triggers carousel when > 8 images
-    const ITEMS_PER_PAGE = 8;
+    // Show max 7 images per page — triggers carousel when > 7 images
+    const ITEMS_PER_PAGE = 7;
 
     useEffect(() => {
         const loadGallery = async () => {
