@@ -25,7 +25,7 @@ const Navbar: React.FC = () => {
     // Helper to group items by category
     const groupByCategory = (items: any[]) => {
         return items.reduce((acc, item) => {
-            const cat = item.category || 'Other';
+            const cat = item.category || item.serviceCategory || 'Other';
             if (!acc[cat]) acc[cat] = [];
             acc[cat].push(item);
             return acc;
