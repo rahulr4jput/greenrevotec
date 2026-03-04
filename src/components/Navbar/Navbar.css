@@ -259,100 +259,128 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
-/* Mega Menu Specifics */
-.mega-menu-grid {
+/* Grouped Mega Menu Styles */
+.submenu-dropdown.mega-menu.full-width {
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    width: 90vw;
+    max-width: 1100px;
+}
+
+.mega-menu-inner {
+    background: rgba(10, 15, 26, 0.96);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+[data-theme="light"] .mega-menu-inner {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+}
+
+.mega-menu-columns {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 32px;
+    margin-bottom: 20px;
+}
+
+.mega-category-column {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
-    padding: 8px;
 }
 
-.mega-menu-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 12px;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    border: 1px solid transparent;
-    text-align: center;
-}
-
-.mega-menu-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-[data-theme="light"] .mega-menu-item:hover {
-    background: rgba(46, 163, 75, 0.05);
-    border-color: rgba(46, 163, 75, 0.1);
-}
-
-.mega-thumb {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border-radius: 10px;
-    overflow: hidden;
-    flex-shrink: 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.mega-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.mega-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    margin-top: 4px;
-}
-
-.mega-title {
-    display: block;
-    width: 100%;
-    font-size: 0.9rem;
+.mega-category-title {
+    font-size: 0.85rem;
     font-weight: 700;
-    color: #ffffff !important;
-    line-height: 1.4;
-    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-primary-light);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
 
-[data-theme="light"] .mega-title {
-    color: #111827 !important;
+.mega-category-title:hover {
+    color: var(--color-lime);
+}
+
+[data-theme="light"] .mega-category-title {
+    color: var(--color-primary);
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .mega-category-title:hover {
+    color: var(--color-primary-dark);
+}
+
+.mega-item-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mega-item-link {
+    display: block;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    padding: 4px 0;
+    font-weight: 500;
+}
+
+.mega-item-link:hover {
+    color: #fff;
+    transform: translateX(4px);
+}
+
+[data-theme="light"] .mega-item-link {
+    color: #4b5563;
+}
+
+[data-theme="light"] .mega-item-link:hover {
+    color: var(--color-primary);
 }
 
 .mega-view-all {
-    grid-column: 1 / -1;
     text-align: center;
-    padding: 10px;
-    margin-top: 5px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 0 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--color-primary-light);
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    text-decoration: none;
 }
 
 .mega-view-all:hover {
-    color: white;
-    background: rgba(46, 163, 75, 0.1);
+    color: #fff;
 }
 
 [data-theme="light"] .mega-view-all {
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    border-top-color: rgba(0, 0, 0, 0.1);
+    color: var(--color-primary);
+}
+
+[data-theme="light"] .mega-view-all:hover {
+    color: var(--color-primary-dark);
 }
 
 /* Navbar Actions (Theme + CTA) */

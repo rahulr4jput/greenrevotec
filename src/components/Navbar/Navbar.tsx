@@ -15,12 +15,25 @@ const Navbar: React.FC = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [visibility, setVisibility] = useState<Record<string, boolean>>({});
     const [logoConfig, setLogoConfig] = useState<{ url: string, show: boolean, siteName: string }>({ url: '/logo.png', show: true, siteName: 'GreenRevotec' });
-    const [categories, setCategories] = useState<{ name: string }[]>([]);
-    const [dynamicServices, setDynamicServices] = useState<{ id: string, title: string, image: string, thumbnail?: string, tag?: string, gradient?: string, iconName?: string }[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
+    const [services, setServices] = useState<any[]>([]);
 
     const navigate = useNavigate();
     const location = useLocation();
     const isHomePage = location.pathname === '/';
+
+    // Helper to group items by category
+    const groupByCategory = (items: any[]) => {
+        return items.reduce((acc, item) => {
+            const cat = item.category || 'Other';
+            if (!acc[cat]) acc[cat] = [];
+            acc[cat].push(item);
+            return acc;
+        }, {} as Record<string, any[]>);
+    };
+
+    const groupedProducts = groupByCategory(products);
+    const groupedServices = groupByCategory(services);
 
     // Dynamic Navigation Links
     const navLinks = [
@@ -30,28 +43,20 @@ const Navbar: React.FC = () => {
             to: 'products',
             path: '/products',
             visibilityKey: 'products',
-            subLinks: categories.length > 0 ? [
-                { label: 'Show All Products', to: '/products', isRouter: true },
-                ...categories.map(cat => ({
-                    label: cat.name,
-                    to: `/products?category=${encodeURIComponent(cat.name)}`,
-                    isRouter: true
-                }))
-            ] : []
+            isMegaMenu: Object.keys(groupedProducts).length > 0,
+            groupedItems: groupedProducts,
+            viewAllLink: '/products',
+            viewAllLabel: 'View All Products'
         },
         {
             label: 'Services',
             to: 'services',
             path: '/services',
             visibilityKey: 'services',
-            subLinks: dynamicServices.length > 0 ? [
-                { label: 'Show All Services', to: '/services', isRouter: true },
-                ...dynamicServices.map(svc => ({
-                    label: svc.title,
-                    to: '/services', // Assuming we deep link later, for now just page
-                    isRouter: true
-                }))
-            ] : []
+            isMegaMenu: Object.keys(groupedServices).length > 0,
+            groupedItems: groupedServices,
+            viewAllLink: '/services',
+            viewAllLabel: 'View All Services'
         },
         { label: 'Projects', to: 'projects', visibilityKey: 'projects' },
         { label: 'Gallery', to: 'gallery', visibilityKey: 'gallery' },
@@ -59,23 +64,23 @@ const Navbar: React.FC = () => {
         { label: 'Contact', to: 'contact', visibilityKey: 'contact' },
     ];
 
-    // Load dynamic data (Categories & Services)
+    // Load dynamic data (Products & Services)
     useEffect(() => {
         const fetchNavData = async () => {
             try {
-                const [catRes, svcRes] = await Promise.all([
-                    fetch('/api/categories'),
+                const [prodRes, svcRes] = await Promise.all([
+                    fetch('/api/products'),
                     fetch('/api/services')
                 ]);
 
-                if (catRes.ok) {
-                    const data = await catRes.json();
-                    setCategories(data.filter((c: any) => c.isActive !== false));
+                if (prodRes.ok) {
+                    const data = await prodRes.json();
+                    setProducts(data.filter((c: any) => c.isActive !== false));
                 }
 
                 if (svcRes.ok) {
                     const data = await svcRes.json();
-                    setDynamicServices(data.filter((s: any) => s.isActive !== false));
+                    setServices(data.filter((s: any) => s.isActive !== false));
                 }
             } catch (error) {
                 console.error('Error fetching nav data:', error);
@@ -183,12 +188,12 @@ const Navbar: React.FC = () => {
                 {/* Desktop Nav */}
                 <ul className="navbar-links" key={isHomePage ? 'home' : 'subpage'}>
                     {navLinks.filter(link => isVisible(link.visibilityKey)).map((link) => (
-                        <li key={link.to} className={link.subLinks && link.subLinks.length > 0 ? 'has-submenu' : ''}>
+                        <li key={link.to} className={link.isMegaMenu ? 'has-submenu' : ''}>
                             <div className="nav-item-wrapper">
                                 {link.path ? (
                                     <RouterLink to={link.path} className={`nav-link ${(location.pathname === link.path) ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
                                         {link.label}
-                                        {link.subLinks && link.subLinks.length > 0 && <FaChevronDown className="submenu-chevron" />}
+                                        {link.isMegaMenu && <FaChevronDown className="submenu-chevron" />}
                                     </RouterLink>
                                 ) : isHomePage ? (
                                     <Link
@@ -200,50 +205,47 @@ const Navbar: React.FC = () => {
                                         className="nav-link"
                                     >
                                         {link.label}
-                                        {link.subLinks && link.subLinks.length > 0 && <FaChevronDown className="submenu-chevron" />}
+                                        {link.isMegaMenu && <FaChevronDown className="submenu-chevron" />}
                                     </Link>
                                 ) : (
                                     <span className="nav-link" style={{ cursor: 'pointer' }} onClick={() => scrollToSection(link.to)}>
                                         {link.label}
-                                        {link.subLinks && link.subLinks.length > 0 && <FaChevronDown className="submenu-chevron" />}
+                                        {link.isMegaMenu && <FaChevronDown className="submenu-chevron" />}
                                     </span>
                                 )}
 
-                                {link.subLinks && link.subLinks.length > 0 && (
-                                    <div className={`submenu-dropdown ${link.label === 'Services' ? 'mega-menu' : ''}`}>
-                                        <div className="submenu-inner">
-                                            {link.label === 'Services' ? (
-                                                <div className="mega-menu-grid">
-                                                    {dynamicServices.map((svc: any, idx) => (
+                                {link.isMegaMenu && link.groupedItems && (
+                                    <div className="submenu-dropdown mega-menu full-width">
+                                        <div className="mega-menu-inner">
+                                            <div className="mega-menu-columns">
+                                                {Object.entries(link.groupedItems).map(([category, items]) => (
+                                                    <div key={category} className="mega-category-column">
                                                         <RouterLink
-                                                            key={idx}
-                                                            to={`/services/${svc.id}`}
-                                                            className="mega-menu-item"
+                                                            to={link.label === 'Products' ? `/products?category=${encodeURIComponent(category)}` : `/services`}
+                                                            className="mega-category-title"
                                                             onClick={() => setMenuOpen(false)}
                                                         >
-                                                            <div className="mega-thumb">
-                                                                <img src={svc.thumbnail || svc.image} alt={svc.title} />
-                                                            </div>
-                                                            <div className="mega-info">
-                                                                <span className="mega-title">{svc.title}</span>
-                                                            </div>
+                                                            {category}
                                                         </RouterLink>
-                                                    ))}
-                                                    <RouterLink to="/services" className="mega-view-all" onClick={() => setMenuOpen(false)}>
-                                                        View All Services <FaChevronDown style={{ transform: 'rotate(-90deg)', marginLeft: '8px' }} />
-                                                    </RouterLink>
-                                                </div>
-                                            ) : (
-                                                link.subLinks.map((sub: any, idx) => (
-                                                    sub.isRouter ? (
-                                                        <RouterLink key={idx} to={sub.to} className="submenu-link">{sub.label}</RouterLink>
-                                                    ) : isHomePage ? (
-                                                        <Link key={idx} to={sub.to} smooth offset={-80} className="submenu-link">{sub.label}</Link>
-                                                    ) : (
-                                                        <span key={idx} className="submenu-link" style={{ cursor: 'pointer' }} onClick={() => scrollToSection(sub.to)}>{sub.label}</span>
-                                                    )
-                                                ))
-                                            )}
+                                                        <ul className="mega-item-list">
+                                                            {items.slice(0, 6).map((item: any) => (
+                                                                <li key={item.id}>
+                                                                    <RouterLink
+                                                                        to={link.label === 'Products' ? `/product/${item.id}` : `/services/${item.id}`}
+                                                                        className="mega-item-link"
+                                                                        onClick={() => setMenuOpen(false)}
+                                                                    >
+                                                                        {item.name || item.title}
+                                                                    </RouterLink>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <RouterLink to={link.viewAllLink!} className="mega-view-all" onClick={() => setMenuOpen(false)}>
+                                                {link.viewAllLabel} <FaChevronDown style={{ transform: 'rotate(-90deg)', marginLeft: '8px' }} />
+                                            </RouterLink>
                                         </div>
                                     </div>
                                 )}
@@ -329,7 +331,7 @@ const Navbar: React.FC = () => {
                                                 <RouterLink
                                                     to={link.path}
                                                     className={`mobile-nav-link ${(location.pathname === link.path) ? 'active' : ''}`}
-                                                    onClick={() => !(link.subLinks && link.subLinks.length > 0) && setMenuOpen(false)}
+                                                    onClick={() => !link.isMegaMenu && setMenuOpen(false)}
                                                 >
                                                     {link.label}
                                                 </RouterLink>
@@ -339,16 +341,16 @@ const Navbar: React.FC = () => {
                                                     smooth
                                                     offset={-80}
                                                     className="mobile-nav-link"
-                                                    onClick={() => !(link.subLinks && link.subLinks.length > 0) && setMenuOpen(false)}
+                                                    onClick={() => !link.isMegaMenu && setMenuOpen(false)}
                                                 >
                                                     {link.label}
                                                 </Link>
                                             ) : (
-                                                <span className="mobile-nav-link" style={{ cursor: 'pointer' }} onClick={() => !(link.subLinks && link.subLinks.length > 0) && scrollToSection(link.to)}>
+                                                <span className="mobile-nav-link" style={{ cursor: 'pointer' }} onClick={() => !link.isMegaMenu && scrollToSection(link.to)}>
                                                     {link.label}
                                                 </span>
                                             )}
-                                            {link.subLinks && link.subLinks.length > 0 && (
+                                            {link.isMegaMenu && link.groupedItems && (
                                                 <button
                                                     className="mobile-submenu-toggle"
                                                     onClick={(e) => {
@@ -366,17 +368,21 @@ const Navbar: React.FC = () => {
                                                 </button>
                                             )}
                                         </div>
-                                        {link.subLinks && link.subLinks.length > 0 && (
+                                        {link.isMegaMenu && link.groupedItems && (
                                             <div className="mobile-submenu" style={{ height: '0', opacity: '0', overflow: 'hidden', transition: 'all 0.3s ease' }}>
-                                                {link.subLinks.map((sub: any, idx) => (
-                                                    sub.isRouter ? (
-                                                        <RouterLink key={idx} to={sub.to} className="mobile-submenu-link" onClick={() => setMenuOpen(false)}>{sub.label}</RouterLink>
-                                                    ) : isHomePage ? (
-                                                        <Link key={idx} to={sub.to} smooth offset={-80} className="mobile-submenu-link" onClick={() => setMenuOpen(false)}>{sub.label}</Link>
-                                                    ) : (
-                                                        <span key={idx} className="mobile-submenu-link" style={{ cursor: 'pointer' }} onClick={() => scrollToSection(sub.to)}>{sub.label}</span>
-                                                    )
+                                                {Object.keys(link.groupedItems).map((category, idx) => (
+                                                    <RouterLink
+                                                        key={idx}
+                                                        to={link.label === 'Products' ? `/products?category=${encodeURIComponent(category)}` : `/services`}
+                                                        className="mobile-submenu-link"
+                                                        onClick={() => setMenuOpen(false)}
+                                                    >
+                                                        {category}
+                                                    </RouterLink>
                                                 ))}
+                                                <RouterLink to={link.viewAllLink!} className="mobile-submenu-link" onClick={() => setMenuOpen(false)} style={{ color: 'var(--color-primary-light)', fontWeight: 600 }}>
+                                                    {link.viewAllLabel}
+                                                </RouterLink>
                                             </div>
                                         )}
                                     </li>
