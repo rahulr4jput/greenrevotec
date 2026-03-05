@@ -10,24 +10,57 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Global Error Handlers for Silent Crashes
+process.on('uncaughtException', (err) => {
+    const logPath = path.join(__dirname, 'panic.log');
+    const msg = `\n[${new Date().toISOString()}] UNCAUGHT EXCEPTION: ${err.stack || err}\n`;
+    fs.appendFileSync(logPath, msg);
+    console.error(msg);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    const logPath = path.join(__dirname, 'panic.log');
+    const msg = `\n[${new Date().toISOString()}] UNHANDLED REJECTION: ${reason}\n`;
+    fs.appendFileSync(logPath, msg);
+    console.error(msg);
+});
+
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Catch JSON Parsing Errors to Debug AWS malformed payload
 app.use((err, req, res, next) => {
-    if (err instanceof SyntaxError && err.status >= 400 && err.status < 500 && err.message.indexOf('JSON') !== -1) {
-        console.error('------- CRITICAL JSON PARSING ERROR -------');
-        console.error('Error Message:', err.message);
-        if (err.body) {
-            console.error('Raw Body First 500 Chars:', String(err.body).substring(0, 500));
-        } else {
-            console.error('Raw Body missing on error object');
+    if (err.name === 'SyntaxError' || err instanceof SyntaxError) {
+        if (err.status >= 400 && err.status < 500 && err.message.includes('JSON')) {
+            console.error('------- DETECTED JSON PARSING ERROR -------');
+            console.error('Error Name:', err.name);
+            console.error('Error Message:', err.message);
+            if (err.body) {
+                console.error('Raw Body Snippet:', String(err.body).substring(0, 500));
+            }
+            return res.status(400).json({
+                error: 'JSON parsing failed',
+                details: err.message,
+                suggestion: 'Check for trailing commas or malformed quotes'
+            });
         }
-        res.status(400).json({ error: 'JSON parsing failed', details: err.message });
-    } else {
-        next(err);
     }
+    next(err);
+});
+
+// Keep the process alive even if event loop is theoretically empty
+const anchor = setInterval(() => {
+    if (process.env.DEBUG_LIFECYCLE) console.log(`[${new Date().toISOString()}] Keep-alive heartbeat`);
+}, 60000);
+
+process.on('exit', (code) => {
+    const msg = `\n[${new Date().toISOString()}] PROCESS EXITING WITH CODE: ${code}\n`;
+    try {
+        fs.appendFileSync(path.join(__dirname, 'panic.log'), msg);
+    } catch (e) { }
+    console.log(msg);
 });
 
 // Serve static files from the React app
@@ -495,23 +528,57 @@ app.get('/api/services', async (req, res) => {
 app.post('/api/services', async (req, res) => {
     try {
         const data = req.body;
+        console.log('--- RECEIVED SERVICE SAVE REQUEST ---');
+
+        // Construct dbData explicitly with nulls instead of undefineds
         const dbData = {
-            ...data,
+            title: data.title || '',
+            description: data.description || '',
+            tag: data.tag || null,
+            gradient: data.gradient || "linear-gradient(135deg, #1a8c4e, #12653a)",
+            iconName: data.iconName || "FaLeaf",
+            customIcon: data.customIcon || null,
+            image: data.image || '',
+            thumbnail: data.thumbnail || null,
             bulletPoints: JSON.stringify(data.bulletPoints || []),
             additionalImages: JSON.stringify(data.additionalImages || []),
             contentBlocks: JSON.stringify(data.contentBlocks || []),
-            id: data.id ? data.id.toString() : undefined
+            isActive: data.isActive !== false,
+            language: data.language || "English",
+            linkedToId: data.linkedToId || null,
+            serviceCategory: data.serviceCategory || null
         };
 
-        const service = await prisma.service.upsert({
-            where: { id: dbData.id || 'temp-service-id' },
-            update: dbData,
-            create: dbData
-        });
+        const serviceId = (data.id && data.id !== 'temp-service-id') ? data.id.toString() : undefined;
+
+        console.log('Final DB Data:', JSON.stringify(dbData, null, 2));
+        console.log('Target Service ID:', serviceId);
+
+        let service;
+        if (serviceId) {
+            // Update or Create with specific ID
+            service = await prisma.service.upsert({
+                where: { id: serviceId },
+                update: dbData,
+                create: { ...dbData, id: serviceId }
+            });
+        } else {
+            // Create new with auto-ID
+            service = await prisma.service.create({
+                data: dbData
+            });
+        }
+
+        console.log('Save result:', service.id);
         res.json(service);
     } catch (error) {
+        console.error('------- SERVICE SAVE EXCEPTION -------');
         console.error(error);
-        res.status(500).json({ error: 'Failed to save service' });
+        res.status(500).json({
+            error: 'Failed to save service',
+            details: error.message,
+            prismaError: error.code
+        });
     }
 });
 
@@ -697,7 +764,8 @@ const seedDatabase = async () => {
     }
 };
 
-app.listen(PORT, async () => {
+const server = app.listen(PORT, async () => {
+    console.log(`[${new Date().toISOString()}] Server starting up logic...`);
     await seedDatabase();
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`[${new Date().toISOString()}] Server is running on port ${PORT}`);
 });

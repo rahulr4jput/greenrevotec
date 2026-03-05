@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, scrollSpy, Events } from 'react-scroll';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaChevronDown, FaHandshake, FaLeaf, FaTractor, FaFlask, FaRobot, FaUsers, FaChartLine, FaMicrochip } from 'react-icons/fa';
+import { FaBars, FaTimes, FaChevronDown, FaHandshake, FaLeaf, FaTractor, FaFlask, FaRobot, FaUsers, FaChartLine, FaMicrochip, FaArrowRight } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
 import './Navbar.css';
 
@@ -169,6 +169,12 @@ const Navbar: React.FC = () => {
         return () => { document.body.style.overflow = ''; };
     }, [menuOpen]);
 
+    const [activeMobileSubmenu, setActiveMobileSubmenu] = useState<string | null>(null);
+
+    const toggleMobileSubmenu = (key: string) => {
+        setActiveMobileSubmenu(prev => prev === key ? null : key);
+    };
+
     return (
         <motion.nav
             className={`navbar ${scrolled ? 'scrolled' : ''} ${!isHomePage ? 'subpage' : ''}`}
@@ -270,14 +276,17 @@ const Navbar: React.FC = () => {
                 {/* Mobile Toggle */}
                 <button
                     className="mobile-toggle"
-                    onClick={() => setMenuOpen(!menuOpen)}
+                    onClick={() => {
+                        setMenuOpen(!menuOpen);
+                        if (!menuOpen) setActiveMobileSubmenu(null);
+                    }}
                     aria-label="Toggle menu"
                 >
                     {menuOpen ? <FaTimes /> : <FaBars />}
                 </button>
             </div>
 
-            {/* Mobile Drawer — overlay and panel in separate AnimatePresence wrappers */}
+            {/* Mobile Drawer */}
             <AnimatePresence>
                 {menuOpen && (
                     <motion.div
@@ -302,7 +311,6 @@ const Navbar: React.FC = () => {
                         exit={{ x: '100%' }}
                         transition={{ type: 'tween', duration: 0.32, ease: 'easeInOut' }}
                     >
-                        {/* Left-edge collapse tab — outside inner scroll area so it's not clipped */}
                         <button
                             className="mobile-drawer-collapse-tab"
                             onClick={() => setMenuOpen(false)}
@@ -311,7 +319,6 @@ const Navbar: React.FC = () => {
                             <FaChevronDown style={{ transform: 'rotate(-90deg)' }} />
                         </button>
 
-                        {/* Inner scrollable content */}
                         <div className="mobile-drawer-inner">
                             <div className="mobile-drawer-header">
                                 <RouterLink to="/" className="navbar-logo" onClick={() => setMenuOpen(false)}>
@@ -350,41 +357,72 @@ const Navbar: React.FC = () => {
                                                     {link.label}
                                                 </span>
                                             )}
-                                            {link.isMegaMenu && link.groupedItems && (
+                                            {link.isMegaMenu && (
                                                 <button
-                                                    className="mobile-submenu-toggle"
+                                                    className={`mobile-submenu-toggle ${activeMobileSubmenu === link.label ? 'active' : ''}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        const target = e.currentTarget.parentElement?.nextElementSibling as HTMLElement;
-                                                        if (target) {
-                                                            const isExpanded = target.style.height === 'auto' || target.style.height === 'max-content';
-                                                            target.style.height = isExpanded ? '0' : 'max-content';
-                                                            target.style.opacity = isExpanded ? '0' : '1';
-                                                            e.currentTarget.style.transform = isExpanded ? 'rotate(0)' : 'rotate(180deg)';
-                                                        }
+                                                        toggleMobileSubmenu(link.label);
                                                     }}
                                                 >
                                                     <FaChevronDown />
                                                 </button>
                                             )}
                                         </div>
-                                        {link.isMegaMenu && link.groupedItems && (
-                                            <div className="mobile-submenu" style={{ height: '0', opacity: '0', overflow: 'hidden', transition: 'all 0.3s ease' }}>
-                                                {Object.keys(link.groupedItems).map((category, idx) => (
-                                                    <RouterLink
-                                                        key={idx}
-                                                        to={link.label === 'Products' ? `/products?category=${encodeURIComponent(category)}` : `/services`}
-                                                        className="mobile-submenu-link"
-                                                        onClick={() => setMenuOpen(false)}
-                                                    >
-                                                        {category}
+                                        <AnimatePresence>
+                                            {link.isMegaMenu && activeMobileSubmenu === link.label && (
+                                                <motion.div
+                                                    className="mobile-submenu"
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                                >
+                                                    {Object.entries(link.groupedItems!).map(([category, items], idx) => {
+                                                        // Icon mapping based on category keywords
+                                                        let CatIcon = FaLeaf;
+                                                        if (category.toLowerCase().includes('irrigation')) CatIcon = FaTractor;
+                                                        if (category.toLowerCase().includes('tech') || category.toLowerCase().includes('drone')) CatIcon = FaRobot;
+                                                        if (category.toLowerCase().includes('fertilizer') || category.toLowerCase().includes('seed')) CatIcon = FaLeaf;
+                                                        if (category.toLowerCase().includes('pesticide')) CatIcon = FaFlask;
+
+                                                        return (
+                                                            <div key={idx} className="mobile-submenu-category">
+                                                                <RouterLink
+                                                                    to={link.label === 'Products' ? `/products?category=${encodeURIComponent(category)}` : `/services`}
+                                                                    className="mobile-submenu-link mobile-submenu-cat-link"
+                                                                    onClick={() => setMenuOpen(false)}
+                                                                >
+                                                                    <div className="submenu-link-content">
+                                                                        <span className="cat-icon-wrap"><CatIcon /></span>
+                                                                        <span className="mobile-cat-label">{category}</span>
+                                                                    </div>
+                                                                </RouterLink>
+                                                                <ul className="mobile-submenu-items">
+                                                                    {((items as any[]) || []).slice(0, 5).map((item: any) => (
+                                                                        <li key={item.id}>
+                                                                            <RouterLink
+                                                                                to={link.label === 'Products' ? `/product/${item.id}` : `/services/${item.id}`}
+                                                                                className="mobile-submenu-item-link"
+                                                                                onClick={() => setMenuOpen(false)}
+                                                                            >
+                                                                                {item.name || item.title}
+                                                                            </RouterLink>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                    <RouterLink to={link.viewAllLink!} className="mobile-submenu-link view-all" onClick={() => setMenuOpen(false)}>
+                                                        <div className="submenu-link-content">
+                                                            <span className="cat-icon-wrap"><FaArrowRight /></span>
+                                                            {link.viewAllLabel}
+                                                        </div>
                                                     </RouterLink>
-                                                ))}
-                                                <RouterLink to={link.viewAllLink!} className="mobile-submenu-link" onClick={() => setMenuOpen(false)} style={{ color: 'var(--color-primary-light)', fontWeight: 600 }}>
-                                                    {link.viewAllLabel}
-                                                </RouterLink>
-                                            </div>
-                                        )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </li>
                                 ))}
                                 {isVisible('onboarding') && (
