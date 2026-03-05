@@ -58,7 +58,7 @@ const defaultConfig: FooterConfig = {
         {
             id: 'company', title: 'Company', isActive: true,
             links: [
-                { label: 'About Us', href: '#' }, { label: 'Our Team', href: '#' },
+                { label: 'About Us', href: '/about' }, { label: 'Our Team', href: '#' },
                 { label: 'Careers', href: 'careers' }, { label: 'Press & Media', href: '#' },
                 { label: 'Corporate Responsibility', href: '#' },
             ],

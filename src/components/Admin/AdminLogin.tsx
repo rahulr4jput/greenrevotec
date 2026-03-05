@@ -16,8 +16,10 @@ const AdminLogin: React.FC = () => {
 
         // Hardcoded credentials as per requirements
         if (username === 'rahulr4jput' && password === 'St20040@**') {
-            // Mock authentication session
+            // Mock authentication session with 60 minute timeout
+            const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 60 minutes
             localStorage.setItem('isAdminAuthenticated', 'true');
+            localStorage.setItem('adminSessionExpiry', (Date.now() + SESSION_TIMEOUT_MS).toString());
             navigate('/admin/leads');
         } else {
             setError('Invalid username or password');

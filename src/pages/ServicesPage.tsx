@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import SEO from '../components/SEO/SEO';
 import { usePageReady } from '../components/PageTransition/PageTransition';
 import {
     FaLeaf, FaTractor, FaFlask, FaRobot, FaUsers, FaChartLine, FaHandshake, FaMicrochip,
@@ -54,7 +55,7 @@ const ServicesPage: React.FC = () => {
                     const activeServices = data.filter((s: Service) => s.isActive !== false);
                     setServices(activeServices);
 
-                    // Priority selection logic
+                    // Initial selection logic
                     if (id) {
                         const target = activeServices.find((s: Service) => s.id === id);
                         if (target) {
@@ -77,7 +78,23 @@ const ServicesPage: React.FC = () => {
             }
         };
         fetchServices();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Handle route ID changes when already on the page
+    useEffect(() => {
+        if (services.length > 0) {
+            const targetId = id || services[0]?.id;
+            const target = services.find(s => s.id === targetId) || services[0];
+            if (target && target.id !== selectedService?.id) {
+                setSelectedService(target);
+                setCurrentImageIdx(0);
+                setSubmitted(false);
+                // Snap to top instantly to prevent layout thrashing on mobile
+                window.scrollTo(0, 0);
+            }
+        }
+    }, [id, services]);
 
     const handleServiceSelect = (service: Service) => {
         setSelectedService(service);
@@ -131,6 +148,11 @@ const ServicesPage: React.FC = () => {
 
     return (
         <div className="services-page">
+            <SEO
+                title={selectedService ? `${selectedService.title} | GreenRevotec Services` : "Our Services | GreenRevotec"}
+                description={selectedService ? selectedService.description : "Explore GreenRevotec's range of professional agricultural services, including smart irrigation, consulting, and sustainable farming solutions."}
+                keywords={`GreenRevotec services, ${selectedService?.title || "irrigation solutions"}, agricultural consultancy`}
+            />
             <div className="services-container container">
 
                 {/* Left Sidebar: Service Selector */}

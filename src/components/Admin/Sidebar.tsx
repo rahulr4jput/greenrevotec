@@ -41,6 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
 
     const handleLogout = () => {
         localStorage.removeItem('isAdminAuthenticated');
+        localStorage.removeItem('adminSessionExpiry');
         navigate('/admin/login');
     };
 

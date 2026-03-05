@@ -8,6 +8,7 @@ interface SEOProps {
     type?: string;
     name?: string;
     image?: string;
+    schema?: object;
 }
 
 const SEO: React.FC<SEOProps> = ({
@@ -16,7 +17,8 @@ const SEO: React.FC<SEOProps> = ({
     keywords,
     type = 'website',
     name = 'GreenRevotec',
-    image
+    image,
+    schema
 }) => {
     return (
         <Helmet>
@@ -24,6 +26,13 @@ const SEO: React.FC<SEOProps> = ({
             <title>{title}</title>
             <meta name="description" content={description} />
             {keywords && <meta name="keywords" content={keywords} />}
+
+            {/* Schema.org JSON-LD */}
+            {schema && (
+                <script type="application/ld+json">
+                    {JSON.stringify(schema)}
+                </script>
+            )}
 
             {/* Facebook & LinkedIn Open Graph tags */}
             <meta property="og:type" content={type} />

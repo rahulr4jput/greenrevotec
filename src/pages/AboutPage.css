@@ -1,0 +1,284 @@
+.about-page {
+    width: 100%;
+    min-height: 100vh;
+    background-color: var(--color-dark);
+    color: var(--color-white);
+}
+
+.about-header {
+    position: relative;
+    padding: 120px 0 80px;
+    text-align: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(26, 140, 78, 0.02), rgba(46, 222, 128, 0.08));
+}
+
+[data-theme="light"] .about-header {
+    background: linear-gradient(135deg, rgba(26, 140, 78, 0.05), rgba(46, 222, 128, 0.15));
+}
+
+.about-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    font-family: var(--font-primary);
+}
+
+.about-header h1 span {
+    color: var(--color-primary);
+}
+
+.about-header .subtitle {
+    font-size: 1.25rem;
+    color: var(--color-gray);
+    font-family: var(--font-secondary);
+}
+
+.about-intro {
+    padding: -60px 0 60px;
+    margin-top: -40px;
+    position: relative;
+    z-index: 10;
+}
+
+.glass-panel {
+    background: var(--grad-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: var(--shadow-card);
+}
+
+.intro-card p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+}
+
+.intro-card p:last-child {
+    margin-bottom: 0;
+}
+
+.mission-vision-section {
+    padding: 60px 0;
+}
+
+.mv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.mv-card {
+    background: var(--color-dark-2);
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.mv-card:hover {
+    transform: translateY(-5px);
+}
+
+.mv-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    background: rgba(26, 140, 78, 0.1);
+    color: var(--color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+}
+
+.mv-card h2 {
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.mv-card p {
+    color: var(--color-gray);
+    line-height: 1.7;
+}
+
+.what-we-do-section {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 80px 0;
+}
+
+[data-theme="light"] .what-we-do-section {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.leadership-section {
+    padding: 80px 0;
+}
+
+.section-header {
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.section-header h2 {
+    font-size: 2.25rem;
+    margin-bottom: 15px;
+}
+
+.section-desc {
+    font-size: 1.1rem;
+    color: var(--color-gray);
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.services-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+}
+
+.service-item {
+    flex: 1 1 calc(33.333% - 30px);
+    min-width: 280px;
+    max-width: 380px;
+    background: var(--color-dark-2);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.service-item:hover {
+    border-color: var(--color-primary-light);
+    transform: translateY(-8px);
+}
+
+.service-icon {
+    font-size: 2rem;
+    color: var(--color-primary);
+    margin-bottom: 20px;
+}
+
+.service-item h3 {
+    font-size: 1.25rem;
+    margin-bottom: 15px;
+}
+
+.service-item p {
+    color: var(--color-gray);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.directors-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.director-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    background: var(--color-dark-2);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-card);
+    flex: 1;
+    max-width: 500px;
+}
+
+.director-avatar {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.director-info h3 {
+    margin: 0 0 5px;
+    font-size: 1.1rem;
+}
+
+.director-title {
+    margin: 0 0 10px;
+    color: var(--color-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.director-exp {
+    margin: 0;
+    color: var(--color-gray);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.leadership-footer {
+    max-width: 600px;
+    margin: 0 auto;
+    color: var(--color-gray);
+    font-style: italic;
+}
+
+.commitment-section {
+    padding: 0 0 80px;
+}
+
+.commitment-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.commitment-icon {
+    font-size: 3rem;
+    color: var(--color-primary);
+    margin-bottom: 20px;
+}
+
+.commitment-content h2 {
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.commitment-content p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+@media (max-width: 768px) {
+    .mv-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .about-header h1 {
+        font-size: 2.2rem;
+    }
+
+    .directors-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .director-card {
+        width: 100%;
+        max-width: 100%;
+    }
+}

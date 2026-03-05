@@ -114,9 +114,9 @@ const HomePage: React.FC = () => {
     return (
         <main>
             <SEO
-                title="Home | GreenRevotec"
-                description="Welcome to GreenRevotec. Discover top-quality agricultural products including organic fertilizers, effective pesticides, and cutting edge drone services."
-                keywords="agriculture company, organic farming, pesticide supplies"
+                title="GreenRevotec | Modern Agriculture & Drip Irrigation Solutions"
+                description="GreenRevotec offers advanced agricultural solutions in India, specializing in Drip Irrigation, Smart Farming, Organic Fertilizers, and Drone Services. Empowering farmers with sustainable technology."
+                keywords="drip irrigation, smart farming India, agriculture company, organic fertilizers, irrigation systems, sustainable farming, GreenRevotec"
             />
             <Hero />
             <WhyChooseUs />

@@ -237,7 +237,7 @@ const Navbar: React.FC = () => {
                                                             {((items as any[]) || []).slice(0, 6).map((item: any) => (
                                                                 <li key={item.id}>
                                                                     <RouterLink
-                                                                        to={link.label === 'Products' ? `/product/${item.id}` : `/services/${item.id}`}
+                                                                        to={link.label === 'Products' ? `/products?highlight=${item.id}` : `/services/${item.id}`}
                                                                         className="mega-item-link"
                                                                         onClick={() => setMenuOpen(false)}
                                                                     >
@@ -372,54 +372,65 @@ const Navbar: React.FC = () => {
                                         <AnimatePresence>
                                             {link.isMegaMenu && activeMobileSubmenu === link.label && (
                                                 <motion.div
-                                                    className="mobile-submenu"
                                                     initial={{ height: 0, opacity: 0 }}
                                                     animate={{ height: 'auto', opacity: 1 }}
                                                     exit={{ height: 0, opacity: 0 }}
                                                     transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                                    style={{ overflow: 'hidden' }}
                                                 >
-                                                    {Object.entries(link.groupedItems!).map(([category, items], idx) => {
-                                                        // Icon mapping based on category keywords
-                                                        let CatIcon = FaLeaf;
-                                                        if (category.toLowerCase().includes('irrigation')) CatIcon = FaTractor;
-                                                        if (category.toLowerCase().includes('tech') || category.toLowerCase().includes('drone')) CatIcon = FaRobot;
-                                                        if (category.toLowerCase().includes('fertilizer') || category.toLowerCase().includes('seed')) CatIcon = FaLeaf;
-                                                        if (category.toLowerCase().includes('pesticide')) CatIcon = FaFlask;
+                                                    <div className="mobile-submenu">
+                                                        {Object.entries(link.groupedItems!).map(([category, items], idx) => {
+                                                            // Icon mapping based on category keywords
+                                                            let CatIcon = FaLeaf;
+                                                            if (category.toLowerCase().includes('irrigation')) CatIcon = FaTractor;
+                                                            if (category.toLowerCase().includes('tech') || category.toLowerCase().includes('drone')) CatIcon = FaRobot;
+                                                            if (category.toLowerCase().includes('fertilizer') || category.toLowerCase().includes('seed')) CatIcon = FaLeaf;
+                                                            if (category.toLowerCase().includes('pesticide')) CatIcon = FaFlask;
 
-                                                        return (
-                                                            <div key={idx} className="mobile-submenu-category">
-                                                                <RouterLink
-                                                                    to={link.label === 'Products' ? `/products?category=${encodeURIComponent(category)}` : `/services`}
-                                                                    className="mobile-submenu-link mobile-submenu-cat-link"
-                                                                    onClick={() => setMenuOpen(false)}
-                                                                >
-                                                                    <div className="submenu-link-content">
-                                                                        <span className="cat-icon-wrap"><CatIcon /></span>
-                                                                        <span className="mobile-cat-label">{category}</span>
-                                                                    </div>
-                                                                </RouterLink>
-                                                                <ul className="mobile-submenu-items">
-                                                                    {((items as any[]) || []).slice(0, 5).map((item: any) => (
-                                                                        <li key={item.id}>
-                                                                            <RouterLink
-                                                                                to={link.label === 'Products' ? `/product/${item.id}` : `/services/${item.id}`}
-                                                                                className="mobile-submenu-item-link"
-                                                                                onClick={() => setMenuOpen(false)}
-                                                                            >
-                                                                                {item.name || item.title}
-                                                                            </RouterLink>
-                                                                        </li>
-                                                                    ))}
-                                                                </ul>
+                                                            return (
+                                                                <div key={idx} className="mobile-submenu-category">
+                                                                    <RouterLink
+                                                                        to={link.label === 'Products' ? `/products?category=${encodeURIComponent(category)}` : `/services`}
+                                                                        className="mobile-submenu-link mobile-submenu-cat-link"
+                                                                        onClick={() => {
+                                                                            setActiveMobileSubmenu(null);
+                                                                            setMenuOpen(false);
+                                                                        }}
+                                                                    >
+                                                                        <div className="submenu-link-content">
+                                                                            <span className="cat-icon-wrap"><CatIcon /></span>
+                                                                            <span className="mobile-cat-label">{category}</span>
+                                                                        </div>
+                                                                    </RouterLink>
+                                                                    <ul className="mobile-submenu-items">
+                                                                        {((items as any[]) || []).slice(0, 5).map((item: any) => (
+                                                                            <li key={item.id}>
+                                                                                <RouterLink
+                                                                                    to={link.label === 'Products' ? `/products?highlight=${item.id}` : `/services/${item.id}`}
+                                                                                    className="mobile-submenu-item-link"
+                                                                                    onClick={() => {
+                                                                                        setActiveMobileSubmenu(null);
+                                                                                        setMenuOpen(false);
+                                                                                    }}
+                                                                                >
+                                                                                    {item.name || item.title}
+                                                                                </RouterLink>
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        <RouterLink to={link.viewAllLink!} className="mobile-submenu-link view-all" onClick={() => {
+                                                            setActiveMobileSubmenu(null);
+                                                            setMenuOpen(false);
+                                                        }}>
+                                                            <div className="submenu-link-content">
+                                                                <span className="cat-icon-wrap"><FaArrowRight /></span>
+                                                                {link.viewAllLabel}
                                                             </div>
-                                                        );
-                                                    })}
-                                                    <RouterLink to={link.viewAllLink!} className="mobile-submenu-link view-all" onClick={() => setMenuOpen(false)}>
-                                                        <div className="submenu-link-content">
-                                                            <span className="cat-icon-wrap"><FaArrowRight /></span>
-                                                            {link.viewAllLabel}
-                                                        </div>
-                                                    </RouterLink>
+                                                        </RouterLink>
+                                                    </div>
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>

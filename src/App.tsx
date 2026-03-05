@@ -10,6 +10,7 @@ import ScrollToTop from './components/ScrollToTop';
 import HomePage from './pages/HomePage';
 import ProductCatalog from './pages/ProductCatalog';
 import ServicesPage from './pages/ServicesPage';
+import AboutPage from './pages/AboutPage';
 import CareersPage from './pages/CareersPage';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import TermsOfService from './pages/legal/TermsOfService';
@@ -172,6 +173,7 @@ function App() {
             <Route path="products" element={<ProductCatalog />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="services/:id" element={<ServicesPage />} />
+            <Route path="about" element={<AboutPage />} />
             <Route path="careers" element={<CareersPage />} />
             {/* Legal Pages */}
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
