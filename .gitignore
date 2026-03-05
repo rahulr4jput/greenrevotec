@@ -35,3 +35,24 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 /logs/
+*.log
+
+# AWS / Nginx / PM2 debug & temp files
+aws_server*.js
+aws-*.log
+nginx-*.log
+nginx-*.txt
+pm2.log
+pm2.txt
+pm2-*.txt
+pm2-*.log
+temp_*.log
+temp_*.txt
+
+# Test / Debug scripts & outputs
+test_*.sh
+test_*.js
+test_*.log
+test_*.json
+curl_response.txt
+*.out.log
