@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
 import BottomNav from '../components/BottomNav/BottomNav';
+import useChunkedRender from '../hooks/useChunkedRender';
 import './ServicesPage.css';
 
 interface Service {
@@ -31,6 +32,31 @@ interface Service {
 const AVAILABLE_ICONS: Record<string, IconType> = {
     FaLeaf, FaTractor, FaFlask, FaRobot, FaUsers, FaChartLine, FaHandshake, FaMicrochip
 };
+
+interface MemoizedServiceListItemProps {
+    service: Service;
+    isSelected: boolean;
+    onSelect: (service: Service) => void;
+}
+
+const MemoizedServiceListItem: React.FC<MemoizedServiceListItemProps> = React.memo(({ service, isSelected, onSelect }) => {
+    const Icon = AVAILABLE_ICONS[service.iconName] || FaHandshake;
+    return (
+        <motion.div
+            className={`service-list-item ${isSelected ? 'active' : ''}`}
+            onClick={() => onSelect(service)}
+            whileHover={{ x: 5 }}
+        >
+            <div className="item-thumbnail">
+                <img src={service.thumbnail || service.image} alt={service.title} />
+                <div className="item-icon-overlay" style={{ background: service.gradient }}>
+                    <Icon />
+                </div>
+            </div>
+            <span className="item-title">{service.title}</span>
+        </motion.div>
+    );
+});
 
 const ServicesPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -94,13 +120,25 @@ const ServicesPage: React.FC = () => {
                 window.scrollTo(0, 0);
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id, services]);
 
-    const handleServiceSelect = (service: Service) => {
+    const handleServiceSelect = React.useCallback((service: Service) => {
         setSelectedService(service);
         setCurrentImageIdx(0);
         setSubmitted(false);
-    };
+        setIsSidebarOpen(false);
+    }, []);
+
+    // Lock body scroll when sidebar is open on mobile
+    useEffect(() => {
+        if (isSidebarOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [isSidebarOpen]);
 
     const nextImage = () => {
         if (!selectedService) return;
@@ -140,11 +178,24 @@ const ServicesPage: React.FC = () => {
         }
     };
 
-    if (loading) return <div className="services-page-loading">Loading Services...</div>;
     const allSelectedImages = selectedService ? [selectedService.image, ...selectedService.additionalImages] : [];
 
-    const uniqueCategories = ['All', ...Array.from(new Set(services.map(s => s.serviceCategory || 'Other')))];
-    const filteredServices = services.filter(s => selectedCategory === 'All' || (s.serviceCategory || 'Other') === selectedCategory);
+    const uniqueCategories = React.useMemo(() => ['All', ...Array.from(new Set(services.map(s => s.serviceCategory || 'Other')))], [services]);
+
+    const filteredServices = React.useMemo(() => {
+        return services.filter(s => selectedCategory === 'All' || (s.serviceCategory || 'Other') === selectedCategory);
+    }, [services, selectedCategory]);
+
+    const chunkedServices = useChunkedRender(filteredServices, 4, 30); // Progressive render for sidebar
+
+    if (loading) {
+        return (
+            <div className="services-page-loading">
+                <div className="spinner"></div>
+                <h2>Loading Services...</h2>
+            </div>
+        );
+    }
 
     return (
         <div className="services-page">
@@ -180,28 +231,14 @@ const ServicesPage: React.FC = () => {
                     </div>
 
                     <div className="services-list">
-                        {filteredServices.map((service) => {
-                            const Icon = AVAILABLE_ICONS[service.iconName] || FaHandshake;
-                            return (
-                                <motion.div
-                                    key={service.id}
-                                    className={`service-list-item ${selectedService?.id === service.id ? 'active' : ''}`}
-                                    onClick={() => {
-                                        handleServiceSelect(service);
-                                        setIsSidebarOpen(false);
-                                    }}
-                                    whileHover={{ x: 5 }}
-                                >
-                                    <div className="item-thumbnail">
-                                        <img src={service.thumbnail || service.image} alt={service.title} />
-                                        <div className="item-icon-overlay" style={{ background: service.gradient }}>
-                                            <Icon />
-                                        </div>
-                                    </div>
-                                    <span className="item-title">{service.title}</span>
-                                </motion.div>
-                            );
-                        })}
+                        {chunkedServices.map((service) => (
+                            <MemoizedServiceListItem
+                                key={service.id}
+                                service={service}
+                                isSelected={selectedService?.id === service.id}
+                                onSelect={handleServiceSelect}
+                            />
+                        ))}
                     </div>
                 </aside>
 

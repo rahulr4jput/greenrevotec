@@ -4,11 +4,79 @@ import { Link, scrollSpy, Events } from 'react-scroll';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaChevronDown, FaHandshake, FaLeaf, FaTractor, FaFlask, FaRobot, FaUsers, FaChartLine, FaMicrochip, FaArrowRight } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
+import useChunkedRender from '../../hooks/useChunkedRender';
 import './Navbar.css';
 
 const AVAILABLE_ICONS: Record<string, IconType> = {
     FaLeaf, FaTractor, FaFlask, FaRobot, FaUsers, FaChartLine, FaHandshake, FaMicrochip
 };
+
+interface MobileSubmenuContentProps {
+    link: any;
+    setActiveMobileSubmenu: (key: string | null) => void;
+    setMenuOpen: (open: boolean) => void;
+}
+
+const MobileSubmenuContent: React.FC<MobileSubmenuContentProps> = React.memo(({ link, setActiveMobileSubmenu, setMenuOpen }) => {
+    const categories = Object.entries(link.groupedItems || {});
+    // Render first 2 categories immediately, then chunk by 2
+    const chunkedCategories = useChunkedRender(categories, 2, 50);
+
+    return (
+        <div className="mobile-submenu">
+            {chunkedCategories.map(([category, items]: any, idx: number) => {
+                let CatIcon = FaLeaf;
+                if (category.toLowerCase().includes('irrigation')) CatIcon = FaTractor;
+                if (category.toLowerCase().includes('tech') || category.toLowerCase().includes('drone')) CatIcon = FaRobot;
+                if (category.toLowerCase().includes('fertilizer') || category.toLowerCase().includes('seed')) CatIcon = FaLeaf;
+                if (category.toLowerCase().includes('pesticide')) CatIcon = FaFlask;
+
+                return (
+                    <div key={idx} className="mobile-submenu-category">
+                        <RouterLink
+                            to={link.label === 'Products' ? `/products?category=${encodeURIComponent(category)}` : `/services`}
+                            className="mobile-submenu-link mobile-submenu-cat-link"
+                            onClick={() => {
+                                setActiveMobileSubmenu(null);
+                                setMenuOpen(false);
+                            }}
+                        >
+                            <div className="submenu-link-content">
+                                <span className="cat-icon-wrap"><CatIcon /></span>
+                                <span className="mobile-cat-label">{category}</span>
+                            </div>
+                        </RouterLink>
+                        <ul className="mobile-submenu-items">
+                            {((items as any[]) || []).slice(0, 5).map((item: any) => (
+                                <li key={item.id}>
+                                    <RouterLink
+                                        to={link.label === 'Products' ? `/products?highlight=${item.id}` : `/services/${item.id}`}
+                                        className="mobile-submenu-item-link"
+                                        onClick={() => {
+                                            setActiveMobileSubmenu(null);
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        {item.name || item.title}
+                                    </RouterLink>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                );
+            })}
+            <RouterLink to={link.viewAllLink!} className="mobile-submenu-link view-all" onClick={() => {
+                setActiveMobileSubmenu(null);
+                setMenuOpen(false);
+            }}>
+                <div className="submenu-link-content">
+                    <span className="cat-icon-wrap"><FaArrowRight /></span>
+                    {link.viewAllLabel}
+                </div>
+            </RouterLink>
+        </div>
+    );
+});
 
 const Navbar: React.FC = () => {
     const [scrolled, setScrolled] = useState(false);
@@ -378,59 +446,11 @@ const Navbar: React.FC = () => {
                                                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                                                     style={{ overflow: 'hidden' }}
                                                 >
-                                                    <div className="mobile-submenu">
-                                                        {Object.entries(link.groupedItems!).map(([category, items], idx) => {
-                                                            // Icon mapping based on category keywords
-                                                            let CatIcon = FaLeaf;
-                                                            if (category.toLowerCase().includes('irrigation')) CatIcon = FaTractor;
-                                                            if (category.toLowerCase().includes('tech') || category.toLowerCase().includes('drone')) CatIcon = FaRobot;
-                                                            if (category.toLowerCase().includes('fertilizer') || category.toLowerCase().includes('seed')) CatIcon = FaLeaf;
-                                                            if (category.toLowerCase().includes('pesticide')) CatIcon = FaFlask;
-
-                                                            return (
-                                                                <div key={idx} className="mobile-submenu-category">
-                                                                    <RouterLink
-                                                                        to={link.label === 'Products' ? `/products?category=${encodeURIComponent(category)}` : `/services`}
-                                                                        className="mobile-submenu-link mobile-submenu-cat-link"
-                                                                        onClick={() => {
-                                                                            setActiveMobileSubmenu(null);
-                                                                            setMenuOpen(false);
-                                                                        }}
-                                                                    >
-                                                                        <div className="submenu-link-content">
-                                                                            <span className="cat-icon-wrap"><CatIcon /></span>
-                                                                            <span className="mobile-cat-label">{category}</span>
-                                                                        </div>
-                                                                    </RouterLink>
-                                                                    <ul className="mobile-submenu-items">
-                                                                        {((items as any[]) || []).slice(0, 5).map((item: any) => (
-                                                                            <li key={item.id}>
-                                                                                <RouterLink
-                                                                                    to={link.label === 'Products' ? `/products?highlight=${item.id}` : `/services/${item.id}`}
-                                                                                    className="mobile-submenu-item-link"
-                                                                                    onClick={() => {
-                                                                                        setActiveMobileSubmenu(null);
-                                                                                        setMenuOpen(false);
-                                                                                    }}
-                                                                                >
-                                                                                    {item.name || item.title}
-                                                                                </RouterLink>
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                        <RouterLink to={link.viewAllLink!} className="mobile-submenu-link view-all" onClick={() => {
-                                                            setActiveMobileSubmenu(null);
-                                                            setMenuOpen(false);
-                                                        }}>
-                                                            <div className="submenu-link-content">
-                                                                <span className="cat-icon-wrap"><FaArrowRight /></span>
-                                                                {link.viewAllLabel}
-                                                            </div>
-                                                        </RouterLink>
-                                                    </div>
+                                                    <MobileSubmenuContent
+                                                        link={link}
+                                                        setActiveMobileSubmenu={setActiveMobileSubmenu}
+                                                        setMenuOpen={setMenuOpen}
+                                                    />
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>

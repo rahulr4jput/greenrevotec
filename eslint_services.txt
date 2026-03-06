@@ -1,0 +1,4 @@
+﻿D:\Web Apps\gv\src\pages\ServicesPage.tsx: line 123, col 8, Warning - React Hook useEffect has a missing dependency: 'selectedService?.id'. Either include it or remove the dependency array. (react-hooks/exhaustive-deps)
+D:\Web Apps\gv\src\pages\ServicesPage.tsx: line 175, col 29, Error - React Hook "useChunkedRender" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return? (react-hooks/rules-of-hooks)
+
+2 problems
